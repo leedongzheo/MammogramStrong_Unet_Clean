@@ -1,10 +1,4 @@
 from config import*
-# from train import get_args
-# import model
-# def optimizer():
-#     optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
-#     return optimizer
-
 def optimizer(model):
     # args = get_args()
     if optim == "Adam":
