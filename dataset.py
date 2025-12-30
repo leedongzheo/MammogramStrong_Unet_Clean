@@ -1,5 +1,51 @@
 from config import*
 
+# ==============================================================================
+# 1. CẤU HÌNH XÁC SUẤT (TỪ FILE OFFLINE CỦA BẠN)
+# ==============================================================================
+AUG_PROBS = {
+    'trigger_spatial': 0.8,  # 80% cơ hội thực hiện biến đổi hình học
+    'trigger_pixel':   0.3,  # 30% cơ hội thực hiện nhiễu/màu
+    'spatial_hflip':   0.5,
+    'spatial_rotate':  0.5,
+    'spatial_deform':  0.6,
+}
+# ==============================================================================
+# 2. CÁC HÀM TIỆN ÍCH HELPER (COPY TỪ FILE OFFLINE)
+# ==============================================================================
+def get_clean_breast_mask(image):
+    # Chuyển đổi sang ảnh xám nếu cần
+    if len(image.shape) == 3:
+        gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY) # Lưu ý: dataset đọc RGB nên dùng RGB2GRAY
+    else:
+        gray = image.copy()
+        
+    _, binary = cv2.threshold(gray, 5, 255, cv2.THRESH_BINARY)
+    contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    mask_clean = np.zeros_like(gray)
+    if contours:
+        c = max(contours, key=cv2.contourArea)
+        cv2.drawContours(mask_clean, [c], -1, 255, thickness=cv2.FILLED)
+    return mask_clean
+
+def add_targeted_coarse_dropout(image, num_holes, min_h, max_h, min_w, max_w):
+    h, w = image.shape[:2]
+    image_aug = image.copy()
+    clean_mask = get_clean_breast_mask(image)
+    tissue_coords = np.argwhere(clean_mask > 0)
+    
+    if len(tissue_coords) == 0: 
+        return image_aug
+        
+    for _ in range(num_holes):
+        idx = random.randint(0, len(tissue_coords) - 1)
+        cy, cx = tissue_coords[idx]
+        hh, ww = random.randint(min_h, max_h), random.randint(min_w, max_w)
+        y1, x1 = max(0, cy - hh//2), max(0, cx - ww//2)
+        y2, x2 = min(h, y1 + hh), min(w, x1 + ww)
+        image_aug[y1:y2, x1:x2] = 0
+    return image_aug
+
 class SegmentationDataset(Dataset):
 	def __init__(self, imagePaths, maskPaths, transforms):
 		# store the image and mask filepaths, and augmentation
