@@ -152,10 +152,16 @@ def main(args):
         # =========================================================
         print("\n" + "="*40)
         print(" GIAI ĐOẠN 3: FINAL TRAINING")
-        
+        # [BƯỚC 1: QUAN TRỌNG] Load Checkpoint thủ công TRƯỚC KHI chỉnh sửa bất cứ thứ gì
+        if resume_checkpoint and os.path.exists(resume_checkpoint):
+            print(f"[INFO] Manually loading checkpoint for Stage 3 setup: {resume_checkpoint}")
+            trainer.load_checkpoint(resume_checkpoint)
+        else:
+            print("[WARNING] No checkpoint found for Stage 3! Training from scratch?")
+            
         if args.loss == "FocalTversky_loss":
             # >> CHIẾN LƯỢC 3 GIAI ĐOẠN (Focal) <<
-            print(" Config: Heavy Augment | Alpha=0.4 (Reduce FP) | LR REDUCED")
+            print(" Config: Heavy Augment | Alpha=0.4 (Reduce FP) | LR REDUCED Strategy: Start Low (1e-5) -> Restart High (1e-4)")
             
             # 1. Update params "nóng"
             _focal_tversky_global.update_params(alpha=0.4, beta=0.6, gamma=1.33)
@@ -203,7 +209,7 @@ def main(args):
         trainer.patience = 20           
         trainer.early_stop_counter = 0
 
-        trainer.train(trainLoader_strong, validLoader, resume_path=resume_checkpoint)
+        trainer.train(trainLoader_strong, validLoader, resume_path=None) 
         export(trainer)
 
     # (Giữ nguyên phần pretrain/evaluate)
