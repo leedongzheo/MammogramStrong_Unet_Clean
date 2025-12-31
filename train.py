@@ -113,7 +113,7 @@ def main(args):
             
             # Đảm bảo params đúng cho GD1 (nếu dùng Focal)
             if args.loss == "FocalTversky_loss":
-                _focal_tversky_global.update_params(alpha=0.7, beta=0.3, gamma=1.33)
+                _focal_tversky_global.update_params(alpha=0.3, beta=0.7, gamma=1.33)
 
             trainer.num_epochs = args.warmup
             trainer.patience = 999      
@@ -136,7 +136,7 @@ def main(args):
             
             # Update Params (Thực tế GD2 vẫn dùng 0.7, nhưng gọi lại cho chắc chắn hoặc nếu bạn muốn chỉnh khác)
             # KHÔNG CẦN gán trainer.criterion = ... vì nó đã trỏ cùng 1 vùng nhớ
-            _focal_tversky_global.update_params(alpha=0.7, beta=0.3, gamma=1.33)
+            _focal_tversky_global.update_params(alpha=0.3, beta=0.7, gamma=1.33)
             
             trainer.num_epochs = 60 
             trainer.patience = 10   
@@ -164,7 +164,7 @@ def main(args):
             print(" Config: Heavy Augment | Alpha=0.4 (Reduce FP) | LR REDUCED Strategy: Start Low (1e-5) -> Restart High (1e-4)")
             
             # 1. Update params "nóng"
-            _focal_tversky_global.update_params(alpha=0.4, beta=0.6, gamma=1.33)
+            _focal_tversky_global.update_params(alpha=0.6, beta=0.4, gamma=1.33)
             
             # 2. Reset Best Loss (Vì scale loss thay đổi)
             trainer.best_val_loss = float('inf')
