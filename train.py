@@ -235,16 +235,46 @@ def main(args):
         trainer.train(trainLoader, validLoader, resume_path=args.checkpoint)
         export(trainer)
     elif args.mode == "evaluate":
-        print(f"[INFO] Mode: EVALUATING")
-        _, validLoader, _ = get_dataloaders(aug_mode='none')
-        visual_folder = os.path.join(BASE_OUTPUT, "prediction_images")
-        trainer.evaluate(
-            test_loader=validLoader, 
-            checkpoint_path=args.checkpoint,
-            save_visuals=True,          # <--- Bật chế độ lưu ảnh
-            output_dir=visual_folder    # <--- Truyền đường dẫn lưu
-        )
-        export_evaluate(trainer)
+        print(f"[INFO] Mode: EVALUATING FULL DATASET")
+        
+        trainLoader, validLoader, testLoader = get_dataloaders(aug_mode='none')
+        
+        eval_tasks = [
+            (trainLoader, "train"),
+            (validLoader, "valid"),
+            (testLoader, "test")
+        ]
+        
+        for loader, split_name in eval_tasks:
+            print(f"\n" + "="*40)
+            print(f" [EVALUATING] Processing: {split_name.upper()} SET")
+            print("="*40)
+            
+            visual_folder = os.path.join(BASE_OUTPUT, f"prediction_images_{split_name}")
+            if not os.path.exists(visual_folder):
+                os.makedirs(visual_folder)
+            
+            trainer.evaluate(
+                test_loader=loader, 
+                checkpoint_path=args.checkpoint,
+                save_visuals=True,          
+                output_dir=visual_folder    
+            )
+            
+            # --- GỌI HÀM VỚI THAM SỐ MỚI ---
+            print(f"[INFO] Exporting metrics for {split_name}...")
+            export_evaluate(trainer, split_name=split_name)
+    # elif args.mode == "evaluate":
+    #     print(f"[INFO] Mode: EVALUATING")
+    #     _, validLoader, _ = get_dataloaders(aug_mode='none')
+    #     visual_folder = os.path.join(BASE_OUTPUT, "prediction_images")
+    #     trainer.evaluate(
+    #         test_loader=validLoader, 
+    #         checkpoint_path=args.checkpoint,
+    #         save_visuals=True,          # <--- Bật chế độ lưu ảnh
+    #         output_dir=visual_folder    # <--- Truyền đường dẫn lưu
+    #     )
+    #     export_evaluate(trainer)
 
 if __name__ == "__main__":
     args = get_args()
