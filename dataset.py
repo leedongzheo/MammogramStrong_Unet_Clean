@@ -4,11 +4,11 @@ from config import*
 # ==============================================================================
 # Các tham số xác suất (giống file offline)
 AUG_PROBS = {
-    'trigger_spatial': 0.7,
-    'trigger_pixel':   0.5,
+    'trigger_spatial': 0.8,
+    'trigger_pixel':   0.3,
     'spatial_hflip':   0.5,
     'spatial_rotate':  0.5,
-    'spatial_deform':  0.7,
+    'spatial_deform':  0.6,
 }
 
 # Đường dẫn đến file metadata (đã tạo bằng script offline)
