@@ -197,7 +197,7 @@ def main(args):
             if hasattr(trainer.scheduler, 'base_lrs'):
                  trainer.scheduler.base_lrs = [target_high_lr] * len(trainer.optimizer.param_groups)
 
-            [QUAN TRỌNG] Reset scheduler về step 0 để bắt đầu chu kỳ mới mượt mà
+            # [QUAN TRỌNG] Reset scheduler về step 0 để bắt đầu chu kỳ mới mượt mà
             trainer.scheduler.last_epoch = -1
             print(f"[CONFIG] Scheduler Reset! Current LR ~{new_lr}. Next Restart Peak: {target_high_lr}")
             
