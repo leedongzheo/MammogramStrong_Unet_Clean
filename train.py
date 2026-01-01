@@ -113,7 +113,7 @@ def main(args):
             
             # Đảm bảo params đúng cho GD1 (nếu dùng Focal)
             if args.loss == "FocalTversky_loss":
-                _focal_tversky_global.update_params(alpha=0.3, beta=0.7, gamma=1.33)
+                _focal_tversky_global.update_params(alpha=0.7, beta=0.3, gamma=1.33)
 
             trainer.num_epochs = args.warmup
             trainer.patience = 999      
@@ -136,7 +136,7 @@ def main(args):
             
             # Update Params (Thực tế GD2 vẫn dùng 0.7, nhưng gọi lại cho chắc chắn hoặc nếu bạn muốn chỉnh khác)
             # KHÔNG CẦN gán trainer.criterion = ... vì nó đã trỏ cùng 1 vùng nhớ
-            _focal_tversky_global.update_params(alpha=0.3, beta=0.7, gamma=1.33)
+            _focal_tversky_global.update_params(alpha=0.7, beta=0.3, gamma=1.33)
             
             trainer.num_epochs = 60 
             trainer.patience = 10   
@@ -164,7 +164,7 @@ def main(args):
             print(" Config: Heavy Augment | Alpha=0.4 (Reduce FP) | LR REDUCED Strategy: Start Low (1e-5) -> Restart High (1e-4)")
             
             # 1. Update params "nóng"
-            _focal_tversky_global.update_params(alpha=0.6, beta=0.4, gamma=1.33)
+            _focal_tversky_global.update_params(alpha=0.4, beta=0.6, gamma=1.33)
             
             # 2. Reset Best Loss (Vì scale loss thay đổi)
             trainer.best_val_loss = float('inf')
@@ -176,30 +176,30 @@ def main(args):
                 param_group['lr'] = new_lr
             print(f"[CONFIG] Optimizer LR forced to: {new_lr}")
             
-            # # Cập nhật "trần" cho Scheduler để các chu kỳ sau không vượt quá 1e-5
-            if hasattr(trainer.scheduler, 'base_lrs'):
-                 trainer.scheduler.base_lrs = [new_lr] * len(trainer.optimizer.param_groups)
+            # # # Cập nhật "trần" cho Scheduler để các chu kỳ sau không vượt quá 1e-5
+            # if hasattr(trainer.scheduler, 'base_lrs'):
+            #      trainer.scheduler.base_lrs = [new_lr] * len(trainer.optimizer.param_groups)
 
-            print(f"[CONFIG] Scheduler continued! New Peak LR set to: {new_lr}")
+            # print(f"[CONFIG] Scheduler continued! New Peak LR set to: {new_lr}")
             
             # 4. KHỞI TẠO LẠI SCHEDULER (Hack thời gian)
-            # CYCLE_LEN = 10
-            # fake_last_epoch = 7  # Mẹo: Giả vờ là đã chạy được 7 epoch -> Đang ở gần đáy chu kỳ
+            CYCLE_LEN = 10
+            fake_last_epoch = 7  # Mẹo: Giả vờ là đã chạy được 7 epoch -> Đang ở gần đáy chu kỳ
 
-            # trainer.scheduler = CosineAnnealingWarmRestarts(
-            #     trainer.optimizer, 
-            #     T_0=CYCLE_LEN, 
-            #     T_mult=1, 
-            #     eta_min=1e-6, 
-            #     last_epoch=-1  # <--- Không cần hack nữa vì Epoch 37 tự khớp rồi
-            # )
-            # target_high_lr = 1e-4
-            # if hasattr(trainer.scheduler, 'base_lrs'):
-            #      trainer.scheduler.base_lrs = [target_high_lr] * len(trainer.optimizer.param_groups)
+            trainer.scheduler = CosineAnnealingWarmRestarts(
+                trainer.optimizer, 
+                T_0=CYCLE_LEN, 
+                T_mult=1, 
+                eta_min=1e-6, 
+                last_epoch=-1  # <--- Không cần hack nữa vì Epoch 37 tự khớp rồi
+            )
+            target_high_lr = 1e-4
+            if hasattr(trainer.scheduler, 'base_lrs'):
+                 trainer.scheduler.base_lrs = [target_high_lr] * len(trainer.optimizer.param_groups)
 
-            # [QUAN TRỌNG] Reset scheduler về step 0 để bắt đầu chu kỳ mới mượt mà
-            # trainer.scheduler.last_epoch = -1
-            # print(f"[CONFIG] Scheduler Reset! Current LR ~{new_lr}. Next Restart Peak: {target_high_lr}")
+            [QUAN TRỌNG] Reset scheduler về step 0 để bắt đầu chu kỳ mới mượt mà
+            trainer.scheduler.last_epoch = -1
+            print(f"[CONFIG] Scheduler Reset! Current LR ~{new_lr}. Next Restart Peak: {target_high_lr}")
             
         else:
             # >> CHIẾN LƯỢC 2 GIAI ĐOẠN (Loss khác) <<
