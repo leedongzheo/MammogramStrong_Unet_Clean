@@ -153,15 +153,65 @@ class ComboLoss(nn.Module):
 # 3. FOCAL TVERSKY LOSS & GLOBAL INSTANCE
 # ==========================================
 
+# class FocalTverskyLoss(nn.Module):
+#     def __init__(self, alpha=0.4, beta=0.6, gamma=1.33, smooth=1e-6):
+#         super().__init__()
+#         self.tversky = TverskyLoss(alpha, beta, smooth)
+#         self.gamma = gamma
+
+#     def forward(self, logits, targets):
+#         tversky_loss = self.tversky(logits, targets)
+#         return torch.pow(tversky_loss, self.gamma)
+
+#     def update_params(self, alpha=None, beta=None, gamma=None):
+#         """Cập nhật nóng tham số"""
+#         if alpha is not None:
+#             self.tversky.alpha = alpha
+#         if beta is not None:
+#             self.tversky.beta = beta
+#         if gamma is not None:
+#             self.gamma = gamma
+#         print(f"[LOSS UPDATE] Changed params to: alpha={self.tversky.alpha}, beta={self.tversky.beta}, gamma={self.gamma}")
+
+# --- GLOBAL INSTANCE (Để dùng cho chiến lược 3 giai đoạn) ---
 class FocalTverskyLoss(nn.Module):
-    def __init__(self, alpha=0.4, beta=0.6, gamma=1.33, smooth=1e-6):
+    def __init__(self, alpha=0.4, beta=0.6, gamma=1.33, smooth=1e-6, deep_supervision=True):
         super().__init__()
         self.tversky = TverskyLoss(alpha, beta, smooth)
         self.gamma = gamma
+        self.deep_supervision = deep_supervision
+        # Trọng số cho Deep Supervision (giảm dần từ output chính đến output phụ)
+        # Output 0 (Final): 1.0
+        # Output 1: 0.5
+        # Output 2: 0.1
+        # Output 3: 0.05
+        self.ds_weights = [1.0, 0.5, 0.1, 0.05]
 
     def forward(self, logits, targets):
-        tversky_loss = self.tversky(logits, targets)
-        return torch.pow(tversky_loss, self.gamma)
+        """
+        Hàm forward thông minh: Tự động phát hiện logits là Single Tensor hay List
+        """
+        # --- TRƯỜNG HỢP 1: DEEP SUPERVISION (Logits là List) ---
+        if isinstance(logits, (list, tuple)):
+            total_loss = 0
+            # Duyệt qua từng output trong list
+            for i, logit in enumerate(logits):
+                # Lấy trọng số tương ứng (nếu vượt quá list weights thì lấy cái cuối cùng)
+                w = self.ds_weights[i] if i < len(self.ds_weights) else 0.05
+                
+                # Tính Loss thành phần
+                tversky_loss = self.tversky(logit, targets)
+                focal_loss = torch.pow(tversky_loss, self.gamma)
+                
+                # Cộng dồn vào tổng (có nhân trọng số)
+                total_loss += w * focal_loss
+            
+            return total_loss
+
+        # --- TRƯỜNG HỢP 2: BÌNH THƯỜNG (Logits là Tensor đơn) ---
+        else:
+            tversky_loss = self.tversky(logits, targets)
+            return torch.pow(tversky_loss, self.gamma)
 
     def update_params(self, alpha=None, beta=None, gamma=None):
         """Cập nhật nóng tham số"""
@@ -172,8 +222,6 @@ class FocalTverskyLoss(nn.Module):
         if gamma is not None:
             self.gamma = gamma
         print(f"[LOSS UPDATE] Changed params to: alpha={self.tversky.alpha}, beta={self.tversky.beta}, gamma={self.gamma}")
-
-# --- GLOBAL INSTANCE (Để dùng cho chiến lược 3 giai đoạn) ---
 _focal_tversky_global = FocalTverskyLoss(alpha=0.7, beta=0.3, gamma=1.33)
 
 # ==========================================
