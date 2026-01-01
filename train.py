@@ -199,7 +199,7 @@ def main(args):
 
             # [QUAN TRỌNG] Reset scheduler về step 0 để bắt đầu chu kỳ mới mượt mà
             # trainer.scheduler.last_epoch = -1
-            print(f"[CONFIG] Scheduler Reset! Current LR ~{new_lr}. Next Restart Peak: {target_high_lr}")
+            # print(f"[CONFIG] Scheduler Reset! Current LR ~{new_lr}. Next Restart Peak: {target_high_lr}")
             
         else:
             # >> CHIẾN LƯỢC 2 GIAI ĐOẠN (Loss khác) <<
