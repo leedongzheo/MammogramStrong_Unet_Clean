@@ -148,9 +148,16 @@ class OnlineStrongAugmentation:
             transforms_list.append(A.HorizontalFlip(p=1.0))
 
         # 2. Rotate
-        if random.random() < AUG_PROBS['spatial_rotate']:
-            angle = random.uniform(-15, 15)
-            transforms_list.append(A.Rotate(limit=(angle, angle), border_mode=cv2.BORDER_CONSTANT, value=0, p=1.0))
+        # 2. Shift - Scale - Rotate (Nâng cấp)
+        # Kết hợp xoay, phóng to/nhỏ và dịch chuyển nhẹ
+        if random.random() < AUG_PROBS['spatial_rotate']: # Tái sử dụng xác suất cũ
+            transforms_list.append(A.ShiftScaleRotate(
+                shift_limit=0.0625, # Dịch chuyển tối đa 6.25% (nhẹ nhàng)
+                scale_limit=0.15,   # Zoom in/out tối đa 15% (An toàn, không làm vỡ ảnh)
+                rotate_limit=15,    # Xoay tối đa 15 độ (như cũ)
+                border_mode=cv2.BORDER_CONSTANT, value=0, 
+                p=1.0
+            ))
 
         # 3. Deformation
         if random.random() < AUG_PROBS['spatial_deform']:
