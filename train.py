@@ -69,7 +69,7 @@ def main(args):
     # 1. Khởi tạo Model
     print(f"[INFO] Initializing Model...")
     model = smp.UnetPlusPlus(
-        encoder_name="efficientnet-b4", 
+        encoder_name="efficientnet-b2", 
         encoder_weights="imagenet",     
         in_channels=3, 
         classes=1, 
