@@ -71,16 +71,40 @@ class HybricLoss(nn.Module):
         focal = binary_focal_loss_with_logits(logits, targets, alpha=None, gamma=2.0, reduction="mean")
         return self.dice_loss(logits, targets) + 0.5 * focal
 
+# class BCEDiceLoss(nn.Module):
+#     def __init__(self):
+#         super().__init__()
+#         self.bce = nn.BCEWithLogitsLoss()
+#     def forward(self, logits, targets):
+#         if targets.ndim == 3: targets = targets.unsqueeze(1)
+#         bce = self.bce(logits, targets)
+#         dice = dice_coef_loss_per_image(logits, targets).mean()
+#         return bce + dice
 class BCEDiceLoss(nn.Module):
-    def __init__(self):
+    def __init__(self, bce_weight=0.5):
         super().__init__()
+        self.bce_weight = bce_weight
+        # Dùng BCEWithLogitsLoss là chuẩn xác nhất
         self.bce = nn.BCEWithLogitsLoss()
-    def forward(self, logits, targets):
-        if targets.ndim == 3: targets = targets.unsqueeze(1)
-        bce = self.bce(logits, targets)
-        dice = dice_coef_loss_per_image(logits, targets).mean()
-        return bce + dice
 
+    def forward(self, logits, targets):
+        # 1. Đảm bảo targets đúng chiều [Batch, 1, H, W]
+        if targets.ndim == 3:
+            targets = targets.unsqueeze(1)
+            
+        # 2. Tính BCE Loss
+        # logits: [B, 1, H, W], targets: [B, 1, H, W]
+        bce_loss = self.bce(logits, targets)
+        
+        # 3. Tính Dice Loss
+        # Lưu ý: Hàm dice_coef_loss_per_image của bạn đã tự sigmoid rồi
+        dice_loss = dice_coef_loss_per_image(logits, targets).mean()
+        
+        # 4. Cộng gộp (Weighted Sum)
+        # Công thức chuẩn: 0.5 * BCE + 0.5 * Dice
+        loss = self.bce_weight * bce_loss + (1 - self.bce_weight) * dice_loss
+        
+        return loss
 class BCEWeightLoss(nn.Module):
     def __init__(self, pos_weight=100.0):
         super().__init__()
