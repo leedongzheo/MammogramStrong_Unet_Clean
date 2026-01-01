@@ -137,7 +137,7 @@ class OnlineStrongAugmentation:
         # Thiết lập tham số Alpha cho Elastic
         if mass_area > 0:
             mass_side = np.sqrt(mass_area)
-            alpha = max(30, min(mass_side * 4.0, 120))
+            alpha = max(30, min(mass_side * 4.0, 80))
         else:
             alpha = random.uniform(30, 100)
             
