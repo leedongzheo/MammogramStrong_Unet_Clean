@@ -88,6 +88,8 @@ class BCEDiceLoss(nn.Module):
         self.bce = nn.BCEWithLogitsLoss()
 
     def forward(self, logits, targets):
+        if isinstance(logits, (list, tuple)):
+            logits = logits[0] # Chỉ tính loss cho output chính
         # 1. Đảm bảo targets đúng chiều [Batch, 1, H, W]
         if targets.ndim == 3:
             targets = targets.unsqueeze(1)
@@ -110,6 +112,8 @@ class BCEWeightLoss(nn.Module):
         super().__init__()
         self.pos_weight = torch.tensor(pos_weight)
     def forward(self, logits, targets):
+        if isinstance(logits, (list, tuple)):
+            logits = logits[0] # Chỉ tính loss cho output chính
         if targets.ndim == 3: targets = targets.unsqueeze(1)
         # Đảm bảo pos_weight nằm cùng device với logits
         if self.pos_weight.device != logits.device:
@@ -124,6 +128,8 @@ class TverskyLoss(nn.Module):
         self.smooth = smooth
 
     def forward(self, logits, targets):
+        if isinstance(logits, (list, tuple)):
+            logits = logits[0] # Chỉ tính loss cho output chính
         probs = torch.sigmoid(logits)
         probs = probs.view(-1)
         targets = targets.view(-1)
@@ -143,6 +149,8 @@ class ComboLoss(nn.Module):
         self.focal_gamma = focal_gamma
 
     def forward(self, logits, targets):
+        if isinstance(logits, (list, tuple)):
+            logits = logits[0] # Chỉ tính loss cho output chính
         dice_loss = dice_coef_loss_per_image(logits, targets).mean()
         focal_loss = binary_focal_loss_with_logits(
             logits, targets, alpha=self.alpha, gamma=self.focal_gamma, reduction="mean"
