@@ -258,25 +258,67 @@ def get_loss_instance(loss_name):
 # 5. METRICS & VISUALIZATION (GIỮ NGUYÊN)
 # ==========================================
 
+# def dice_coeff_hard(logits, target, threshold=0.5, epsilon=1e-6):
+#     probs = torch.sigmoid(logits)
+#     preds = (probs > threshold).float()
+#     preds_flat = preds.view(preds.size(0), -1)
+#     target_flat = target.view(target.size(0), -1)
+#     intersection = (preds_flat * target_flat).sum(dim=1)
+#     dice = (2. * intersection + epsilon) / (preds_flat.sum(dim=1) + target_flat.sum(dim=1) + epsilon)
+#     return dice
+
+# def iou_core_hard(logits, target, threshold=0.5, epsilon=1e-6):
+#     probs = torch.sigmoid(logits)
+#     preds = (probs > threshold).float()
+#     preds_flat = preds.view(preds.size(0), -1)
+#     target_flat = target.view(target.size(0), -1)
+#     intersection = (preds_flat * target_flat).sum(dim=1)
+#     union = preds_flat.sum(dim=1) + target_flat.sum(dim=1) - intersection
+#     iou = (intersection + epsilon) / (union + epsilon)
+#     return iou
+import torch
+
 def dice_coeff_hard(logits, target, threshold=0.5, epsilon=1e-6):
+    """
+    Tính Dice Score (Hard Metric).
+    Hỗ trợ tự động Deep Supervision (Input là List).
+    """
+    # --- [THÊM MỚI] XỬ LÝ DEEP SUPERVISION ---
+    if isinstance(logits, (list, tuple)):
+        # Trong SMP, phần tử đầu tiên (index 0) luôn là output cuối cùng (Final Output)
+        logits = logits[0] 
+    # -----------------------------------------
+
     probs = torch.sigmoid(logits)
     preds = (probs > threshold).float()
     preds_flat = preds.view(preds.size(0), -1)
     target_flat = target.view(target.size(0), -1)
+    
     intersection = (preds_flat * target_flat).sum(dim=1)
     dice = (2. * intersection + epsilon) / (preds_flat.sum(dim=1) + target_flat.sum(dim=1) + epsilon)
     return dice
 
 def iou_core_hard(logits, target, threshold=0.5, epsilon=1e-6):
+    """
+    Tính IoU Score (Hard Metric).
+    Hỗ trợ tự động Deep Supervision (Input là List).
+    """
+    # --- [THÊM MỚI] XỬ LÝ DEEP SUPERVISION ---
+    if isinstance(logits, (list, tuple)):
+        logits = logits[0]
+    # -----------------------------------------
+
     probs = torch.sigmoid(logits)
     preds = (probs > threshold).float()
     preds_flat = preds.view(preds.size(0), -1)
     target_flat = target.view(target.size(0), -1)
+    
     intersection = (preds_flat * target_flat).sum(dim=1)
     union = preds_flat.sum(dim=1) + target_flat.sum(dim=1) - intersection
+    
     iou = (intersection + epsilon) / (union + epsilon)
     return iou
-
+    
 def unnormalize(img_tensor):
     img = img_tensor.cpu().numpy().transpose(1, 2, 0)
     mean = np.array([0.485, 0.456, 0.406])
