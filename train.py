@@ -176,7 +176,7 @@ def main(args):
                 param_group['lr'] = new_lr
             print(f"[CONFIG] Optimizer LR forced to: {new_lr}")
             
-            # Cập nhật "trần" cho Scheduler để các chu kỳ sau không vượt quá 1e-5
+            # # Cập nhật "trần" cho Scheduler để các chu kỳ sau không vượt quá 1e-5
             if hasattr(trainer.scheduler, 'base_lrs'):
                  trainer.scheduler.base_lrs = [new_lr] * len(trainer.optimizer.param_groups)
 
@@ -189,17 +189,17 @@ def main(args):
             # trainer.scheduler = CosineAnnealingWarmRestarts(
             #     trainer.optimizer, 
             #     T_0=CYCLE_LEN, 
-            #     T_mult=2, 
+            #     T_mult=1, 
             #     eta_min=1e-6, 
-            #     last_epoch=fake_last_epoch  # <--- ĐIỂM QUAN TRỌNG NHẤT
+            #     last_epoch=-1  # <--- Không cần hack nữa vì Epoch 37 tự khớp rồi
             # )
             # target_high_lr = 1e-4
             # if hasattr(trainer.scheduler, 'base_lrs'):
             #      trainer.scheduler.base_lrs = [target_high_lr] * len(trainer.optimizer.param_groups)
 
-            # # [QUAN TRỌNG] Reset scheduler về step 0 để bắt đầu chu kỳ mới mượt mà
-            # # trainer.scheduler.last_epoch = -1
-            # print(f"[CONFIG] Scheduler Reset! Current LR ~{new_lr}. Next Restart Peak: {target_high_lr}")
+            # [QUAN TRỌNG] Reset scheduler về step 0 để bắt đầu chu kỳ mới mượt mà
+            # trainer.scheduler.last_epoch = -1
+            print(f"[CONFIG] Scheduler Reset! Current LR ~{new_lr}. Next Restart Peak: {target_high_lr}")
             
         else:
             # >> CHIẾN LƯỢC 2 GIAI ĐOẠN (Loss khác) <<
