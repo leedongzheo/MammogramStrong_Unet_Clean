@@ -175,24 +175,31 @@ def main(args):
             for param_group in trainer.optimizer.param_groups:
                 param_group['lr'] = new_lr
             print(f"[CONFIG] Optimizer LR forced to: {new_lr}")
-            # 4. KHỞI TẠO LẠI SCHEDULER (Hack thời gian)
-            CYCLE_LEN = 10
-            fake_last_epoch = 7  # Mẹo: Giả vờ là đã chạy được 7 epoch -> Đang ở gần đáy chu kỳ
-
-            trainer.scheduler = CosineAnnealingWarmRestarts(
-                trainer.optimizer, 
-                T_0=CYCLE_LEN, 
-                T_mult=2, 
-                eta_min=1e-6, 
-                last_epoch=fake_last_epoch  # <--- ĐIỂM QUAN TRỌNG NHẤT
-            )
-            target_high_lr = 1e-4
+            
+            # Cập nhật "trần" cho Scheduler để các chu kỳ sau không vượt quá 1e-5
             if hasattr(trainer.scheduler, 'base_lrs'):
-                 trainer.scheduler.base_lrs = [target_high_lr] * len(trainer.optimizer.param_groups)
+                 trainer.scheduler.base_lrs = [new_lr] * len(trainer.optimizer.param_groups)
 
-            # [QUAN TRỌNG] Reset scheduler về step 0 để bắt đầu chu kỳ mới mượt mà
-            # trainer.scheduler.last_epoch = -1
-            print(f"[CONFIG] Scheduler Reset! Current LR ~{new_lr}. Next Restart Peak: {target_high_lr}")
+            print(f"[CONFIG] Scheduler continued! New Peak LR set to: {new_lr}")
+            
+            # 4. KHỞI TẠO LẠI SCHEDULER (Hack thời gian)
+            # CYCLE_LEN = 10
+            # fake_last_epoch = 7  # Mẹo: Giả vờ là đã chạy được 7 epoch -> Đang ở gần đáy chu kỳ
+
+            # trainer.scheduler = CosineAnnealingWarmRestarts(
+            #     trainer.optimizer, 
+            #     T_0=CYCLE_LEN, 
+            #     T_mult=2, 
+            #     eta_min=1e-6, 
+            #     last_epoch=fake_last_epoch  # <--- ĐIỂM QUAN TRỌNG NHẤT
+            # )
+            # target_high_lr = 1e-4
+            # if hasattr(trainer.scheduler, 'base_lrs'):
+            #      trainer.scheduler.base_lrs = [target_high_lr] * len(trainer.optimizer.param_groups)
+
+            # # [QUAN TRỌNG] Reset scheduler về step 0 để bắt đầu chu kỳ mới mượt mà
+            # # trainer.scheduler.last_epoch = -1
+            # print(f"[CONFIG] Scheduler Reset! Current LR ~{new_lr}. Next Restart Peak: {target_high_lr}")
             
         else:
             # >> CHIẾN LƯỢC 2 GIAI ĐOẠN (Loss khác) <<
