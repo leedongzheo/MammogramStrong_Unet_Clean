@@ -163,24 +163,43 @@ def export(trainer):
     plt.savefig(output_metric, dpi=300)
     # plt.show() # Comment lại nếu chạy trên server không có màn hình
     plt.close()
-
-def export_evaluate(trainer):
+def export_evaluate(trainer, split_name="test"): # <--- Thêm tham số này (mặc định là test)
     output_folder = BASE_OUTPUT
     os.makedirs(output_folder, exist_ok=True)
     
-    # Lấy dữ liệu từ trainer (các list này được tạo trong hàm evaluate)
+    # Lấy dữ liệu từ trainer
     df = pd.DataFrame({
         'ImagePath': trainer.path_list,
-        'Type': trainer.type_list,      # <--- Cột mới: Normal hoặc Mass
+        'Type': trainer.type_list, 
         'Dice': trainer.dice_list,
         'IoU': trainer.iou_list
     })
     
-    # Thêm cột phân loại Mass/Normal để dễ lọc
-    # Giả sử ImagePath chứa tên file, ta không biết logic label ở đây
-    # Nhưng trainer.evaluate đã print report, file csv này lưu raw data từng ảnh
+    # --- SỬA TẠI ĐÂY ---
+    # Đặt tên file động: train_metrics.csv, valid_metrics.csv...
+    result_csv = f"{split_name}_metrics_details.csv" 
     
-    result_csv = "test_metrics_details.csv"
     output_result = os.path.join(output_folder, result_csv)
     df.to_csv(output_result, index=False)
     print(f"[INFO] Evaluation details saved to {output_result}")
+        
+# def export_evaluate(trainer):
+#     output_folder = BASE_OUTPUT
+#     os.makedirs(output_folder, exist_ok=True)
+    
+#     # Lấy dữ liệu từ trainer (các list này được tạo trong hàm evaluate)
+#     df = pd.DataFrame({
+#         'ImagePath': trainer.path_list,
+#         'Type': trainer.type_list,      # <--- Cột mới: Normal hoặc Mass
+#         'Dice': trainer.dice_list,
+#         'IoU': trainer.iou_list
+#     })
+    
+#     # Thêm cột phân loại Mass/Normal để dễ lọc
+#     # Giả sử ImagePath chứa tên file, ta không biết logic label ở đây
+#     # Nhưng trainer.evaluate đã print report, file csv này lưu raw data từng ảnh
+    
+#     result_csv = "test_metrics_details.csv"
+#     output_result = os.path.join(output_folder, result_csv)
+#     df.to_csv(output_result, index=False)
+#     print(f"[INFO] Evaluation details saved to {output_result}")
