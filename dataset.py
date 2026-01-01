@@ -4,11 +4,11 @@ from config import*
 # ==============================================================================
 # Các tham số xác suất (giống file offline)
 AUG_PROBS = {
-    'trigger_spatial': 0.8,
-    'trigger_pixel':   0.3,
+    'trigger_spatial': 0.7,
+    'trigger_pixel':   0.5,
     'spatial_hflip':   0.5,
     'spatial_rotate':  0.5,
-    'spatial_deform':  0.6,
+    'spatial_deform':  0.7,
 }
 
 # Đường dẫn đến file metadata (đã tạo bằng script offline)
@@ -137,7 +137,7 @@ class OnlineStrongAugmentation:
         # Thiết lập tham số Alpha cho Elastic
         if mass_area > 0:
             mass_side = np.sqrt(mass_area)
-            alpha = max(30, min(mass_side * 4.0, 80))
+            alpha = max(30, min(mass_side * 4.0, 120))
         else:
             alpha = random.uniform(30, 100)
             
