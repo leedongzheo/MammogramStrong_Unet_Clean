@@ -504,7 +504,7 @@ def get_dataloaders(aug_mode='none'):
     print(f"[INFO] Distribution -> Normal: {num_normal} | Mass: {num_mass}")
     
     weight_normal = 1. / num_normal if num_normal > 0 else 0
-    weight_mass = 1. / num_mass if num_mass > 0 else 0
+    weight_mass = 2. / num_mass if num_mass > 0 else 0
     class_weights = torch.tensor([weight_normal, weight_mass])
     
     samples_weights = class_weights[train_targets]
