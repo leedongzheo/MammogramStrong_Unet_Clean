@@ -117,10 +117,10 @@ class OnlineStrongAugmentation:
                 new_area = 0
             else:
                 new_area = max(cv2.contourArea(c) for c in contours)
-            
+            threshold_area = max(30, min_dataset_area * 0.5)
             # ĐIỀU KIỆN CHẤP NHẬN:
             # Diện tích mới không được nhỏ hơn diện tích nhỏ nhất của dataset
-            if new_area >= min_dataset_area:
+            if new_area >= threshold_area:
                 return aug_img, aug_mask
         
         # Nếu thử 5 lần mà lần nào u cũng bị cắt cụt/thu nhỏ quá mức
@@ -152,9 +152,12 @@ class OnlineStrongAugmentation:
         # Kết hợp xoay, phóng to/nhỏ và dịch chuyển nhẹ
         if random.random() < AUG_PROBS['spatial_rotate']: # Tái sử dụng xác suất cũ
             transforms_list.append(A.ShiftScaleRotate(
-                shift_limit=0.0625, # Dịch chuyển tối đa 6.25% (nhẹ nhàng)
-                scale_limit=0.15,   # Zoom in/out tối đa 15% (An toàn, không làm vỡ ảnh)
-                rotate_limit=15,    # Xoay tối đa 15 độ (như cũ)
+                # shift_limit=0.0625, # Dịch chuyển tối đa 6.25% (nhẹ nhàng)
+				shift_limit=0.1,    # Tăng từ 0.0625 -> 0.1 (Dịch chuyển nhiều hơn)
+                # scale_limit=0.15,   # Zoom in/out tối đa 15% (An toàn, không làm vỡ ảnh)
+				scale_limit=0.35,    # Tăng từ 0.15 -> 0.3 (Zoom to/nhỏ mạnh hơn)
+                # rotate_limit=15,    # Xoay tối đa 15 độ (như cũ)
+				rotate_limit=45,    # Tăng từ 15 -> 45 (Xoay nghiêng ngả hơn)
                 border_mode=cv2.BORDER_CONSTANT, value=0, 
                 p=1.0
             ))
@@ -189,7 +192,7 @@ class OnlineStrongAugmentation:
     def apply_pixel(self, image, current_area, min_dataset_area):
         # 1. TÍNH TOÁN safe_side_limit (KÍCH THƯỚC LỖ TỐI ĐA)
         # 1. LỌC DANH SÁCH AN TOÀN (Giữ nguyên logic cũ)
-        valid_choices = ['GaussNoise', 'BrightnessContrast']
+        valid_choices = ['GaussNoise', 'BrightnessContrast', 'RandomGamma', 'CLAHE']
         # Tính margin: current=5782, min=143 -> margin = 40 lần (Rất an toàn)
         safety_margin = current_area / min_dataset_area if min_dataset_area > 0 else 999
         if safety_margin > 1.2:
@@ -202,13 +205,14 @@ class OnlineStrongAugmentation:
             # Phải tính toán cẩn thận để không xóa mất khối u
             # Công thức: max(8, min(sqrt(0.4 * Area), 30))
             # Kết quả: U nhỏ -> Lỗ 8px. U to -> Lỗ 30px.
-            safe_side_limit = max(8, min(int(np.sqrt(0.4 * current_area)), 30))
-            
+            # safe_side_limit = max(8, min(int(np.sqrt(0.4 * current_area)), 30))
+            safe_side_limit = max(12, min(int(np.sqrt(0.4 * current_area)), 50))            
         else:
             # --- TRƯỜNG HỢP NORMAL (KHÔNG CÓ U) ---
             # Không sợ che mất u, nên cho phép lỗ to hơn để tăng độ khó (Strong Aug)
             # Random cận trên từ 15 đến 30 pixel (thay vì cố định 8px như cũ)
-            safe_side_limit = random.randint(15, 30)
+            # safe_side_limit = random.randint(15, 30)
+			safe_side_limit = random.randint(25, 50)
 
         # choice = random.choice(['GridDropout', 'CoarseDropout', 'GaussNoise', 'BrightnessContrast'])
         # image_aug = image.copy()
@@ -225,8 +229,10 @@ class OnlineStrongAugmentation:
                 if random.random() < 0.5:
                     # Chiến thuật 1: Cấu trúc (Lỗ TO - Ratio THẤP)
                     # Nới trần lên 60px thay vì 30px
-                    real_limit = max(31, min(int(np.sqrt(0.4 * current_area)), 60))
-                    target_hole_size = random.randint(30, real_limit)
+                    # real_limit = max(31, min(int(np.sqrt(0.4 * current_area)), 60))
+					real_limit = max(50, min(int(np.sqrt(0.4 * current_area)), 100))
+                    # target_hole_size = random.randint(30, real_limit)
+				    target_hole_size = random.randint(50, real_limit)
                     # target_hole_size = random.randint(30, real_limit) 
                     suggested_ratio_min, suggested_ratio_max = 0.15, 0.3
                 else:
@@ -305,7 +311,15 @@ class OnlineStrongAugmentation:
         elif choice == 'BrightnessContrast':
             aug = A.RandomBrightnessContrast(brightness_limit=0.1, contrast_limit=0.1, p=1.0)
             image_aug = aug(image=image)['image']
-            
+        elif choice == 'RandomGamma':
+	        # Thay đổi Gamma giúp model thích nghi với các máy chụp có độ tương phản khác nhau
+	        aug = A.RandomGamma(gamma_limit=(80, 120), p=1.0)
+	        image_aug = aug(image=image)['image']
+
+	    elif choice == 'CLAHE':
+	        # Cân bằng histogram thích ứng (Rất tốt để làm nổi bật chi tiết trong vùng tối/sáng)
+	        aug = A.CLAHE(clip_limit=4.0, tile_grid_size=(8, 8), p=1.0)
+	        image_aug = aug(image=image)['image']
         return image_aug
 
     def __call__(self, image, mask, mass_area=0.0, min_dataset_area=0.0):
