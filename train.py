@@ -304,7 +304,7 @@ def main(args):
                 # Nếu thêm 'scheduler_state_dict': None -> Sẽ bị lỗi NoneType crash ngay.
             }
             torch.save(swa_checkpoint, swa_save_path)
-            
+            export(trainer)
             # Đánh giá Model SWA
             print("\n[INFO] Evaluating SWA Model...")
             # Gán model SWA vào trainer để evaluate
@@ -320,9 +320,7 @@ def main(args):
                 output_dir=visual_folder    
             )
             export_evaluate(trainer, split_name="valid_swa")
-            # Lúc này mọi thứ đã xong, export để lưu lại lịch sử toàn bộ quá trình
-            print("\n[INFO] Exporting Full Training History...")
-            export(trainer)
+            
     # (Giữ nguyên phần pretrain/evaluate)
     elif args.mode == "pretrain":
         aug_type = 'strong' if args.augment else 'none'
