@@ -283,10 +283,19 @@ class OnlineStrongAugmentation:
             # actual_holes = random.randint(4, 8)
             h_min = max(2, target_hole_size - 2)
             h_max = target_hole_size + 2
+            
+            # 2. Tính toán phạm vi cho Chiều Rộng (Width)
+            # Logic: Width được phép random từ "Một nửa Height" đến "Gấp rưỡi Height"
+            # Nhưng việc chọn số cụ thể là ngẫu nhiên hoàn toàn.
+            w_min = max(2, int(target_hole_size * 0.5)) 
+            w_max = max(w_min + 1, int(target_hole_size * 1.5))
+
+            # 3. Gọi hàm đục lỗ
+            # Hàm này sẽ bốc h từ [h_min, h_max] và w từ [w_min, w_max] riêng biệt
             image_aug = add_targeted_coarse_dropout(
                 image, actual_holes, 
                 min_h=h_min, max_h=h_max, 
-                min_w=h_min, max_w=h_max
+                min_w=w_min, max_w=w_max
             )
             
         elif choice == 'GaussNoise':
