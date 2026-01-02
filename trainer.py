@@ -35,7 +35,7 @@ class Trainer:
         self.scaler = GradScaler(enabled=self.use_amp)
         
         # Scheduler
-        self.scheduler = CosineAnnealingWarmRestarts(self.optimizer, T_0=10, T_mult=2, eta_min=1e-6)
+        self.scheduler = CosineAnnealingWarmRestarts(self.optimizer, T_0=10, T_mult=1, eta_min=1e-6)
         
         # Start epoch
         self.start_epoch = 0
