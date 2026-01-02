@@ -333,7 +333,7 @@ def main(args):
         trainLoader, validLoader, testLoader = get_dataloaders(aug_mode='none')
         
         eval_tasks = [
-            (trainLoader, "train"),
+            # (trainLoader, "train"),
             (validLoader, "valid"),
             (testLoader, "test")
         ]
