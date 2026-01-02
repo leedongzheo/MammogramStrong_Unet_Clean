@@ -228,7 +228,7 @@ def main(args):
         trainer.early_stop_counter = 0
         # Chạy GD3 đến khi Early Stop kích hoạt        
         trainer.train(trainLoader_strong, validLoader, resume_path=None) 
-        export(trainer)
+        # export(trainer)
         # =========================================================
         # GIAI ĐOẠN 4: SWA (STOCHASTIC WEIGHT AVERAGING)
         # =========================================================
@@ -240,12 +240,12 @@ def main(args):
             print("="*40)
 
             # 1. QUAN TRỌNG: Load lại BEST MODEL của GD3 (Không dùng model cuối cùng)
-            best_model_path = os.path.join(BASE_OUTPUT, "best_model.pth")
+            best_model_path = "best_dice_mass_model.pth"
             if os.path.exists(best_model_path):
                 print(f"[INFO] Loading BEST model from Stage 3 for SWA: {best_model_path}")
                 trainer.load_checkpoint(best_model_path)
             else:
-                print("[WARNING] Could not find best_model.pth, continuing with current model state.")
+                print("[WARNING] Could not find best_dice_mass_model.pth, continuing with current model state.")
 
             # 2. Khởi tạo SWA
             swa_model = AveragedModel(trainer.model)
@@ -320,6 +320,9 @@ def main(args):
                 output_dir=visual_folder    
             )
             export_evaluate(trainer, split_name="valid_swa")
+            # Lúc này mọi thứ đã xong, export để lưu lại lịch sử toàn bộ quá trình
+            print("\n[INFO] Exporting Full Training History...")
+            export(trainer)
     # (Giữ nguyên phần pretrain/evaluate)
     elif args.mode == "pretrain":
         aug_type = 'strong' if args.augment else 'none'
