@@ -288,7 +288,7 @@ class Trainer:
                     # Tính xác suất để visualize (0 -> 1)
                     probs = torch.sigmoid(logits)
                     # Tạo mask nhị phân (0 hoặc 1) để vẽ
-                    preds = (probs > 0.3).float()
+                    preds = (probs > 0.1).float()
                 # Lặp từng ảnh trong batch để tính metric và vẽ
                 for j in range(images.size(0)):
                     d = batch_dices[j].item()
