@@ -51,7 +51,7 @@ def add_targeted_coarse_dropout(image, num_holes, min_h, max_h, min_w, max_w):
 # 2. CUSTOM AUGMENTATION CLASS (ĐÃ FIX ĐỘ TRỄ DIỆN TÍCH)
 # ==============================================================================
 class OnlineStrongAugmentation:
-    def __init__(self, output_size=384):
+    def __init__(self, output_size=640):
         self.output_size = output_size
         # self.global_min_area = global_min_area
         
