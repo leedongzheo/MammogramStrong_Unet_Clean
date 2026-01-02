@@ -11,7 +11,6 @@ def export(trainer):
     source_file1='last_model.pth'
     source_file2 = 'best_dice_mass_model.pth' # Tên file best model mới
     source_file3 = 'best_iou_mass_model.pth'  # Tên file best iou mới (nếu muốn move cả cái này)
-    source_file4 = 'best_model_swa.pth'
     # Lấy thông tin từ trainer
     best_ep = trainer.best_epoch_dice
     best_d = trainer.best_dice_mass
