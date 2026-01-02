@@ -99,6 +99,7 @@ def main(args):
     if args.mode == "train":
         if not os.path.exists(BASE_OUTPUT):
             os.makedirs(BASE_OUTPUT)
+        # resume_checkpoint = None
         if args.augment:
             mode_stage1 = 'weak'
             mode_stage23 = 'strong'
@@ -201,13 +202,15 @@ def main(args):
                 eta_min=1e-6, 
                 last_epoch=-1  # <--- Không cần hack nữa vì Epoch 37 tự khớp rồi
             )
-            target_high_lr = 1e-4
-            if hasattr(trainer.scheduler, 'base_lrs'):
-                 trainer.scheduler.base_lrs = [target_high_lr] * len(trainer.optimizer.param_groups)
+            print(f"[CONFIG] Scheduler Reset!")
+            
+            # target_high_lr = 1e-4
+            # if hasattr(trainer.scheduler, 'base_lrs'):
+            #      trainer.scheduler.base_lrs = [target_high_lr] * len(trainer.optimizer.param_groups)
 
-            # [QUAN TRỌNG] Reset scheduler về step 0 để bắt đầu chu kỳ mới mượt mà
-            trainer.scheduler.last_epoch = -1
-            print(f"[CONFIG] Scheduler Reset! Current LR ~{new_lr}. Next Restart Peak: {target_high_lr}")
+            # # [QUAN TRỌNG] Reset scheduler về step 0 để bắt đầu chu kỳ mới mượt mà
+            # trainer.scheduler.last_epoch = -1
+            # print(f"[CONFIG] Scheduler Reset! Current LR ~{new_lr}. Next Restart Peak: {target_high_lr}")
             
         else:
             # >> CHIẾN LƯỢC 2 GIAI ĐOẠN (Loss khác) <<
@@ -221,12 +224,88 @@ def main(args):
         trainLoader_strong, validLoader, _ = get_dataloaders(aug_mode=mode_stage23)
         
         trainer.num_epochs = NUM_EPOCHS # Max epoch
-        trainer.patience = 20           
+        trainer.patience = 20  # Patient 20 cho GD3         
         trainer.early_stop_counter = 0
-
+        # Chạy GD3 đến khi Early Stop kích hoạt        
         trainer.train(trainLoader_strong, validLoader, resume_path=None) 
         export(trainer)
+        # =========================================================
+        # GIAI ĐOẠN 4: SWA (STOCHASTIC WEIGHT AVERAGING)
+        # =========================================================
+        # Chỉ chạy SWA nếu đang dùng FocalTversky (chiến lược của bạn)
+        if args.loss == "FocalTversky_loss":
+            print("\n" + "="*40)
+            print(" GIAI ĐOẠN 4: SWA FINETUNING (The Secret Weapon)")
+            print(" Strategy: Constant LR | No Early Stop | 20 Epochs")
+            print("="*40)
 
+            # 1. QUAN TRỌNG: Load lại BEST MODEL của GD3 (Không dùng model cuối cùng)
+            best_model_path = os.path.join(BASE_OUTPUT, "best_model.pth")
+            if os.path.exists(best_model_path):
+                print(f"[INFO] Loading BEST model from Stage 3 for SWA: {best_model_path}")
+                trainer.load_checkpoint(best_model_path)
+            else:
+                print("[WARNING] Could not find best_model.pth, continuing with current model state.")
+
+            # 2. Khởi tạo SWA
+            swa_model = AveragedModel(trainer.model)
+            # LR cho SWA: Cao hơn GD3 một chút để thoát hố (5e-5 là an toàn với AdamW)
+            swa_lr = 5e-5 
+            swa_scheduler = SWALR(trainer.optimizer, swa_lr=swa_lr, anneal_epochs=3)
+            
+            print(f"[CONFIG] SWA Scheduler set. LR: {swa_lr}")
+
+            # 3. Cấu hình vòng lặp SWA
+            SWA_EPOCHS = 20 # Chạy cố định
+            trainer.patience = 999 # Tắt Early Stop
+            trainer.early_stop_counter = 0
+            
+            # Chúng ta sẽ dùng lại hàm train() của Trainer nhưng chạy từng epoch một
+            # để chèn logic update_parameters vào giữa.
+            
+            print("[INFO] Starting SWA Loop...")
+            for epoch in range(SWA_EPOCHS):
+                # Hack: Set epoch = 1 để Trainer chạy 1 vòng rồi thoát ra
+                trainer.num_epochs = 1 
+                
+                # Gán scheduler SWA vào trainer
+                trainer.scheduler = swa_scheduler
+                
+                # Train 1 epoch (Không load checkpoint, chạy tiếp từ bộ nhớ)
+                # Lưu ý: Trainer sẽ in ra log validation, cứ kệ nó.
+                print(f"\n[SWA] Epoch {epoch+1}/{SWA_EPOCHS}")
+                trainer.train(trainLoader_strong, validLoader, resume_path=None)
+                
+                # Cập nhật trọng số trung bình
+                swa_model.update_parameters(trainer.model)
+                
+                # Step Scheduler
+                swa_scheduler.step()
+                
+            # 4. Cập nhật Batch Norm (Bước bắt buộc)
+            print("\n[INFO] Updating Batch Normalization statistics for SWA Model...")
+            update_bn(trainLoader_strong, swa_model, device=DEVICE)
+
+            # 5. Lưu và Đánh giá SWA Model
+            swa_save_path = os.path.join(BASE_OUTPUT, "best_model_swa.pth")
+            print(f"[INFO] Saving SWA Model to {swa_save_path}")
+            torch.save(swa_model.state_dict(), swa_save_path)
+            
+            # Đánh giá Model SWA
+            print("\n[INFO] Evaluating SWA Model...")
+            # Gán model SWA vào trainer để evaluate
+            trainer.model = swa_model
+            
+            visual_folder = os.path.join(BASE_OUTPUT, "prediction_images_swa")
+            os.makedirs(visual_folder, exist_ok=True)
+            
+            trainer.evaluate(
+                test_loader=validLoader, 
+                checkpoint_path=swa_save_path,
+                save_visuals=True,          
+                output_dir=visual_folder    
+            )
+            export_evaluate(trainer, split_name="valid_swa")
     # (Giữ nguyên phần pretrain/evaluate)
     elif args.mode == "pretrain":
         aug_type = 'strong' if args.augment else 'none'
