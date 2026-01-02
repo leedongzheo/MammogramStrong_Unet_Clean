@@ -282,13 +282,13 @@ class Trainer:
                 # Forward pass
                 logits = self.model(images)
                 # 1. Tính Metric (Truyền logits thẳng vào, hàm hard tự lo phần còn lại)
-                batch_dices = dice_coeff_hard(logits, masks, threshold = 0.1)
-                batch_ious = iou_core_hard(logits, masks, threshold = 0.1)
+                batch_dices = dice_coeff_hard(logits, masks, threshold = 0.3)
+                batch_ious = iou_core_hard(logits, masks, threshold = 0.3)
                 if save_visuals:
                     # Tính xác suất để visualize (0 -> 1)
                     probs = torch.sigmoid(logits)
                     # Tạo mask nhị phân (0 hoặc 1) để vẽ
-                    preds = (probs > 0.1).float()
+                    preds = (probs > 0.3).float()
                 # Lặp từng ảnh trong batch để tính metric và vẽ
                 for j in range(images.size(0)):
                     d = batch_dices[j].item()
