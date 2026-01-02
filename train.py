@@ -289,7 +289,21 @@ def main(args):
             # 5. Lưu và Đánh giá SWA Model
             swa_save_path = os.path.join(BASE_OUTPUT, "best_model_swa.pth")
             print(f"[INFO] Saving SWA Model to {swa_save_path}")
-            torch.save(swa_model.state_dict(), swa_save_path)
+            swa_checkpoint = {
+                'epoch': SWA_EPOCHS,
+                'model_state_dict': swa_model.state_dict(),         # <--- Đã sửa để khớp tên layer
+                'optimizer_state_dict': trainer.optimizer.state_dict(), # Để không lỗi optimizer
+                
+                # Các chỉ số thống kê (Lấy từ trainer hiện tại để lưu làm kỷ niệm)
+                'best_val_loss': trainer.best_val_loss, 
+                'best_dice_mass': trainer.best_dice_mass,
+                'best_iou_mass': trainer.best_iou_mass,
+                'history': trainer.history,
+                
+                # QUAN TRỌNG: KHÔNG ĐƯỢC THÊM 'scheduler_state_dict' VÀO ĐÂY
+                # Nếu thêm 'scheduler_state_dict': None -> Sẽ bị lỗi NoneType crash ngay.
+            }
+            torch.save(swa_checkpoint, swa_save_path)
             
             # Đánh giá Model SWA
             print("\n[INFO] Evaluating SWA Model...")
