@@ -76,13 +76,13 @@ def main(args):
     #     decoder_attention_type="scse"   
     # )
     model = smp.UnetPlusPlus(
-        encoder_name="efficientnet-b5",
+        encoder_name="efficientnet-b4",
         encoder_weights="imagenet",
         in_channels=3,
         classes=1,
         decoder_attention_type="scse",
         deep_supervision=True,  # <--- Nhớ thêm dấu phẩy ở đây
-        encoder_params={"dropout_rate": 0.3} 
+        encoder_params={"dropout_rate": 0.5} 
 )
     # 2. Khởi tạo Optimizer
     opt = optimizer_module.optimizer(model=model) 
