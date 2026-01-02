@@ -212,7 +212,7 @@ class OnlineStrongAugmentation:
             # Không sợ che mất u, nên cho phép lỗ to hơn để tăng độ khó (Strong Aug)
             # Random cận trên từ 15 đến 30 pixel (thay vì cố định 8px như cũ)
             # safe_side_limit = random.randint(15, 30)
-			safe_side_limit = random.randint(25, 50)
+            safe_side_limit = random.randint(25, 50)
 
         # choice = random.choice(['GridDropout', 'CoarseDropout', 'GaussNoise', 'BrightnessContrast'])
         # image_aug = image.copy()
@@ -230,9 +230,9 @@ class OnlineStrongAugmentation:
                     # Chiến thuật 1: Cấu trúc (Lỗ TO - Ratio THẤP)
                     # Nới trần lên 60px thay vì 30px
                     # real_limit = max(31, min(int(np.sqrt(0.4 * current_area)), 60))
-					real_limit = max(50, min(int(np.sqrt(0.4 * current_area)), 100))
+                    real_limit = max(50, min(int(np.sqrt(0.4 * current_area)), 100))
                     # target_hole_size = random.randint(30, real_limit)
-				    target_hole_size = random.randint(50, real_limit)
+                    target_hole_size = random.randint(50, real_limit)
                     # target_hole_size = random.randint(30, real_limit) 
                     suggested_ratio_min, suggested_ratio_max = 0.15, 0.3
                 else:
@@ -313,13 +313,13 @@ class OnlineStrongAugmentation:
             image_aug = aug(image=image)['image']
         elif choice == 'RandomGamma':
 	        # Thay đổi Gamma giúp model thích nghi với các máy chụp có độ tương phản khác nhau
-	        aug = A.RandomGamma(gamma_limit=(80, 120), p=1.0)
-	        image_aug = aug(image=image)['image']
+            aug = A.RandomGamma(gamma_limit=(80, 120), p=1.0)
+            image_aug = aug(image=image)['image']
 
-	    elif choice == 'CLAHE':
+        elif choice == 'CLAHE':
 	        # Cân bằng histogram thích ứng (Rất tốt để làm nổi bật chi tiết trong vùng tối/sáng)
-	        aug = A.CLAHE(clip_limit=4.0, tile_grid_size=(8, 8), p=1.0)
-	        image_aug = aug(image=image)['image']
+            aug = A.CLAHE(clip_limit=4.0, tile_grid_size=(8, 8), p=1.0)
+            image_aug = aug(image=image)['image']
         return image_aug
 
     def __call__(self, image, mask, mass_area=0.0, min_dataset_area=0.0):
