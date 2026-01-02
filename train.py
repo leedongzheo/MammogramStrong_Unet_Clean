@@ -56,7 +56,7 @@ def main(args):
     from result import export, export_evaluate
     global trainer
     from utils import get_loss_instance, _focal_tversky_global
-
+    from torch.optim.swa_utils import AveragedModel, SWALR, update_bn
 
     # from utils import loss_func
 
