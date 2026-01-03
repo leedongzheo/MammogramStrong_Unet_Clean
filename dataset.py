@@ -58,7 +58,7 @@ class OnlineStrongAugmentation:
         self.resize = A.Resize(height=output_size, width=output_size, interpolation=cv2.INTER_LINEAR)
         
         self.normalize_and_tensor = A.Compose([
-            A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            A.Normalize(mean=[0.1608, 0.1751, 0.1216], std=[0.2526, 0.2466, 0.1983]),
             ToTensorV2()
         ])
 
@@ -451,21 +451,21 @@ def get_dataloaders(aug_mode='none'):
         train_transform = A.Compose([
             A.Resize(height=INPUT_IMAGE_WIDTH, width=INPUT_IMAGE_WIDTH, interpolation=cv2.INTER_LINEAR),
             A.HorizontalFlip(p=0.5), 
-            A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            A.Normalize(mean=[0.1608, 0.1751, 0.1216], std=[0.2526, 0.2466, 0.1983]),
             ToTensorV2()
         ])
     else:
         print("[INFO] Not using AUGMENTATION (Resize & Normalize only)")
         train_transform = A.Compose([
             A.Resize(height=INPUT_IMAGE_WIDTH, width=INPUT_IMAGE_WIDTH, interpolation=cv2.INTER_LINEAR),
-            A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+            A.Normalize(mean=[0.1608, 0.1751, 0.1216], std=[0.2526, 0.2466, 0.1983]),
             ToTensorV2()
         ])
 
     # Valid Transform (Cố định)
     valid_transform = A.Compose([
         A.Resize(height=INPUT_IMAGE_WIDTH, width=INPUT_IMAGE_WIDTH, interpolation=cv2.INTER_LINEAR),
-        A.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        A.Normalize(mean=[0.1608, 0.1751, 0.1216], std=[0.2526, 0.2466, 0.1983]),
         ToTensorV2()
     ])
 
