@@ -82,7 +82,7 @@ def main(args):
         classes=1,
         decoder_attention_type="scse",
         deep_supervision=True,  # <--- Nhớ thêm dấu phẩy ở đây
-        encoder_params={"dropout_rate": 0.5} 
+        encoder_params={"dropout_rate": 0.65} 
 )
     # 2. Khởi tạo Optimizer
     opt = optimizer_module.optimizer(model=model) 
