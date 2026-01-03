@@ -1,6 +1,6 @@
 import os
 import torch
-import smp
+# import smp
 from torch.optim.swa_utils import AveragedModel, SWALR, update_bn
 from config import*
 # --- IMPORT CÁC MODULE CỦA BẠN ---
