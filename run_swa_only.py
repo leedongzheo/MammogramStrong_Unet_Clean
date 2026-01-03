@@ -14,7 +14,7 @@ from utils import get_loss_instance
 # --- CẤU HÌNH ---
 DEVICE = "cuda" if torch.cuda.is_available() else "cpu"
 BASE_OUTPUT = "output"
-BATCH_SIZE = 8  # Chỉnh lại cho khớp với VRAM của bạn
+BATCH_SIZE = 32  # Chỉnh lại cho khớp với VRAM của bạn
 
 def set_seed(seed=42):
     import random
