@@ -2,7 +2,7 @@ import os
 import torch
 import smp
 from torch.optim.swa_utils import AveragedModel, SWALR, update_bn
-
+from config import*
 # --- IMPORT CÁC MODULE CỦA BẠN ---
 # (Đảm bảo các file trainer.py, model.py, ... nằm cùng thư mục)
 from trainer import Trainer
