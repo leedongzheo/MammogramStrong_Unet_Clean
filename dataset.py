@@ -19,7 +19,7 @@ GLOBAL_MIN_AREA_DEFAULT = 143.5
 # --- HELPER FUNCTIONS ---
 def get_clean_breast_mask(image):
     if len(image.shape) == 3:
-        gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
+        gray = image[:, :, 1]
     else:
         gray = image.copy()
     _, binary = cv2.threshold(gray, 5, 255, cv2.THRESH_BINARY)
@@ -51,7 +51,7 @@ def add_targeted_coarse_dropout(image, num_holes, min_h, max_h, min_w, max_w):
 # 2. CUSTOM AUGMENTATION CLASS (ĐÃ FIX ĐỘ TRỄ DIỆN TÍCH)
 # ==============================================================================
 class OnlineStrongAugmentation:
-    def __init__(self, output_size=640):
+    def __init__(self, output_size=512):
         self.output_size = output_size
         # self.global_min_area = global_min_area
         
@@ -305,11 +305,7 @@ class OnlineStrongAugmentation:
             )
             
         elif choice == 'GaussNoise':
-            aug = A.GaussNoise(var_limit=(10.0, 30.0), p=1.0)
-            image_aug = aug(image=image)['image']
-            
-        elif choice == 'BrightnessContrast':
-            aug = A.RandomBrightnessContrast(brightness_limit=0.1, contrast_limit=0.1, p=1.0)
+            aug = A.GaussNoise(var_limit=(10.0, 25.0), p=1.0)
             image_aug = aug(image=image)['image']
 
         return image_aug
@@ -386,7 +382,7 @@ class SegmentationDataset(Dataset):
 
         # Đọc ảnh và mask
         image = cv2.imread(imagePath)
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        # image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         mask = cv2.imread(maskPath, cv2.IMREAD_GRAYSCALE) # 0-255
 
         # Áp dụng Transform
