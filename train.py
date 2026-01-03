@@ -267,7 +267,7 @@ def main(args):
             for epoch in range(SWA_EPOCHS):
                 # Hack: Set epoch = 1 để Trainer chạy 1 vòng rồi thoát ra
                 trainer.num_epochs = 1 
-                
+                trainer.start_epoch = 0 
                 # Gán scheduler SWA vào trainer
                 trainer.scheduler = swa_scheduler
                 
