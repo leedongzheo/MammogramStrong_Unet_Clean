@@ -3,7 +3,7 @@ from utils import *
 from optimizer import *
 
 class Trainer:
-    def __init__(self, model, optimizer, criterion, patience=20, device=DEVICE):
+    def __init__(self, model, optimizer, criterion, patience=30, device=DEVICE):
         self.device = device
         self.model = model.to(self.device)
         self.num_epochs = NUM_EPOCHS
