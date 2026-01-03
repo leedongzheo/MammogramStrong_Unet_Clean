@@ -192,7 +192,7 @@ class OnlineStrongAugmentation:
     def apply_pixel(self, image, current_area, min_dataset_area):
         # 1. TÍNH TOÁN safe_side_limit (KÍCH THƯỚC LỖ TỐI ĐA)
         # 1. LỌC DANH SÁCH AN TOÀN (Giữ nguyên logic cũ)
-        valid_choices = ['GaussNoise', 'BrightnessContrast', 'RandomGamma', 'CLAHE']
+        valid_choices = ['GaussNoise']
         # Tính margin: current=5782, min=143 -> margin = 40 lần (Rất an toàn)
         safety_margin = current_area / min_dataset_area if min_dataset_area > 0 else 999
         if safety_margin > 1.2:
@@ -311,15 +311,7 @@ class OnlineStrongAugmentation:
         elif choice == 'BrightnessContrast':
             aug = A.RandomBrightnessContrast(brightness_limit=0.1, contrast_limit=0.1, p=1.0)
             image_aug = aug(image=image)['image']
-        elif choice == 'RandomGamma':
-	        # Thay đổi Gamma giúp model thích nghi với các máy chụp có độ tương phản khác nhau
-            aug = A.RandomGamma(gamma_limit=(80, 120), p=1.0)
-            image_aug = aug(image=image)['image']
 
-        elif choice == 'CLAHE':
-	        # Cân bằng histogram thích ứng (Rất tốt để làm nổi bật chi tiết trong vùng tối/sáng)
-            aug = A.CLAHE(clip_limit=4.0, tile_grid_size=(12, 12), p=1.0)
-            image_aug = aug(image=image)['image']
         return image_aug
 
     def __call__(self, image, mask, mass_area=0.0, min_dataset_area=0.0):
