@@ -59,6 +59,7 @@ class DiceLoss(nn.Module):
     def __init__(self):
         super().__init__()
     def forward(self, logits, targets):
+        if isinstance(logits, (list, tuple)): logits = logits[0]
         # Trả về scalar mean loss
         return dice_coef_loss_per_image(logits, targets).mean()
 
@@ -67,6 +68,7 @@ class HybricLoss(nn.Module):
         super().__init__()
         self.dice_loss = DiceLoss()
     def forward(self, logits, targets):
+        if isinstance(logits, (list, tuple)): logits = logits[0]
         # Hybric = Dice + 0.5 * Focal (alpha=None)
         focal = binary_focal_loss_with_logits(logits, targets, alpha=None, gamma=2.0, reduction="mean")
         return self.dice_loss(logits, targets) + 0.5 * focal
@@ -193,8 +195,8 @@ class FocalTverskyLoss(nn.Module):
         # Output 1: 0.5
         # Output 2: 0.1
         # Output 3: 0.05
-        self.ds_weights = [1.0, 0.5, 0.1, 0.05]
-
+        # self.ds_weights = [1.0, 0.5, 0.1, 0.05]
+        self.ds_weights = [1.0, 0.5, 0.25, 0.1] # Tinh chỉnh nhẹ cho EfficientNet
     def forward(self, logits, targets):
         """
         Hàm forward thông minh: Tự động phát hiện logits là Single Tensor hay List
@@ -206,9 +208,13 @@ class FocalTverskyLoss(nn.Module):
             for i, logit in enumerate(logits):
                 # Lấy trọng số tương ứng (nếu vượt quá list weights thì lấy cái cuối cùng)
                 w = self.ds_weights[i] if i < len(self.ds_weights) else 0.05
-                
+                # Resize targets nếu kích thước không khớp (chỉ xảy ra ở tầng rất sâu)
+                if logit.shape[-2:] != targets.shape[-2:]:
+                     target_resized = F.interpolate(targets, size=logit.shape[-2:], mode='nearest')
+                else:
+                     target_resized = targets
                 # Tính Loss thành phần
-                tversky_loss = self.tversky(logit, targets)
+                tversky_loss = self.tversky(logit, target_resized)
                 focal_loss = torch.pow(tversky_loss, self.gamma)
                 
                 # Cộng dồn vào tổng (có nhân trọng số)
@@ -284,7 +290,7 @@ def get_loss_instance(loss_name):
 #     union = preds_flat.sum(dim=1) + target_flat.sum(dim=1) - intersection
 #     iou = (intersection + epsilon) / (union + epsilon)
 #     return iou
-import torch
+
 
 def dice_coeff_hard(logits, target, threshold=0.5, epsilon=1e-6):
     """
@@ -329,14 +335,24 @@ def iou_core_hard(logits, target, threshold=0.5, epsilon=1e-6):
     
 def unnormalize(img_tensor):
     img = img_tensor.cpu().numpy().transpose(1, 2, 0)
-    mean = np.array([0.485, 0.456, 0.406])
-    std = np.array([0.229, 0.224, 0.225])
+    mean = np.array([0.1608, 0.1751, 0.1216])
+    std = np.array([0.2526, 0.2466, 0.1983])
     img = img * std + mean
     img = np.clip(img, 0, 1)
     return img
 
 def visualize_prediction(img_tensor, mask_tensor, pred_tensor, save_path, iou_score, dice_score):
-    orig_img = unnormalize(img_tensor) 
+    """
+    Vẽ ảnh 3 kênh thông minh: Hiển thị kênh CLAHE (Green - Kênh 1) làm background
+    để dễ nhìn thấy khối u và đường vân nhất.
+    """
+    # 1. Khôi phục ảnh 3 kênh đầy đủ
+    full_img_rgb = unnormalize(img_tensor) 
+    # 2. Chỉ lấy kênh Green (CLAHE) để hiển thị cho rõ (Vì nó sáng và chi tiết nhất)
+    # Hoặc hiển thị cả ảnh RGB cũng được, nhưng màu sẽ hơi lạ (tím/xanh).
+    # Ở đây mình chọn hiển thị kênh CLAHE (Channel 1) dưới dạng ảnh xám cho chuyên nghiệp.
+    display_img = full_img_rgb[:, :, 1] 
+    # orig_img = unnormalize(img_tensor) 
     gt_mask = mask_tensor.squeeze().cpu().numpy()
     pred_mask = pred_tensor.squeeze().cpu().numpy()
 
@@ -345,23 +361,28 @@ def visualize_prediction(img_tensor, mask_tensor, pred_tensor, save_path, iou_sc
 
     plt.figure(figsize=(12, 4))
     
-    # 1. Ảnh gốc
+    # 1. Ảnh gốc (Hiển thị kênh CLAHE)
     plt.subplot(1, 3, 1)
-    plt.imshow(orig_img)
-    plt.title("Original")
+    # plt.imshow(orig_img)
+    plt.imshow(display_img, cmap='gray')
+    plt.title("Input (CLAHE Channel)")
     plt.axis('off')
 
     # 2. GT
     plt.subplot(1, 3, 2)
+    # plt.imshow(display_img, cmap='gray')
+    # plt.imshow(np.ma.masked_where(gt_mask == 0, gt_mask), cmap=cmap_gt, alpha=0.6, interpolation='none')
     plt.imshow(gt_mask, cmap='gray')
     plt.title("Ground Truth")
     plt.axis('off')
 
     # 3. Overlay
     plt.subplot(1, 3, 3)
-    plt.imshow(orig_img)
-    plt.imshow(np.ma.masked_where(gt_mask == 0, gt_mask), cmap=cmap_gt, alpha=0.6, interpolation='none')
-    plt.imshow(np.ma.masked_where(pred_mask == 0, pred_mask), cmap=cmap_pred, alpha=0.4, interpolation='none')
+    plt.imshow(display_img, cmap='gray')
+    # Doi 0.6 thanh 0.4
+    plt.imshow(np.ma.masked_where(gt_mask == 0, gt_mask), cmap=cmap_gt, alpha=0.4, interpolation='none')
+    #  Doi 0.4 thanh 0.6
+    plt.imshow(np.ma.masked_where(pred_mask == 0, pred_mask), cmap=cmap_pred, alpha=0.6, interpolation='none')
     plt.title(f"IoU: {iou_score:.2f} | Dice: {dice_score:.2f}")
     plt.axis('off')
 
