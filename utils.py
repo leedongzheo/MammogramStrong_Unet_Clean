@@ -356,8 +356,8 @@ def visualize_prediction(img_tensor, mask_tensor, pred_tensor, save_path, iou_sc
     gt_mask = mask_tensor.squeeze().cpu().numpy()
     pred_mask = pred_tensor.squeeze().cpu().numpy()
 
-    cmap_gt = ListedColormap(['#00FF00']) 
-    cmap_pred = ListedColormap(['#FF0000']) 
+    cmap_gt = ListedColormap(['#006400']) 
+    cmap_pred = ListedColormap(['#8B0000']) 
 
     plt.figure(figsize=(12, 4))
     
