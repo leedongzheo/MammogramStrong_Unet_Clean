@@ -380,9 +380,9 @@ def visualize_prediction(img_tensor, mask_tensor, pred_tensor, save_path, iou_sc
     plt.subplot(1, 3, 3)
     plt.imshow(display_img, cmap='gray')
     # Doi 0.6 thanh 0.4
-    plt.imshow(np.ma.masked_where(gt_mask == 0, gt_mask), cmap=cmap_gt, alpha=0.4, interpolation='none')
+    plt.imshow(np.ma.masked_where(gt_mask == 0, gt_mask), cmap=cmap_gt, alpha=0.6, interpolation='none')
     #  Doi 0.4 thanh 0.6
-    plt.imshow(np.ma.masked_where(pred_mask == 0, pred_mask), cmap=cmap_pred, alpha=0.6, interpolation='none')
+    plt.imshow(np.ma.masked_where(pred_mask == 0, pred_mask), cmap=cmap_pred, alpha=0.4, interpolation='none')
     plt.title(f"IoU: {iou_score:.2f} | Dice: {dice_score:.2f}")
     plt.axis('off')
 
