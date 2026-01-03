@@ -207,14 +207,14 @@ class OnlineStrongAugmentation:
             # Phải tính toán cẩn thận để không xóa mất khối u
             # Công thức: max(8, min(sqrt(0.4 * Area), 30))
             # Kết quả: U nhỏ -> Lỗ 8px. U to -> Lỗ 30px.
-            # safe_side_limit = max(8, min(int(np.sqrt(0.4 * current_area)), 30))
-            safe_side_limit = max(12, min(int(np.sqrt(0.4 * current_area)), 50))            
+            safe_side_limit = max(8, min(int(np.sqrt(0.4 * current_area)), 30))
+            # safe_side_limit = max(12, min(int(np.sqrt(0.4 * current_area)), 50))            
         else:
             # --- TRƯỜNG HỢP NORMAL (KHÔNG CÓ U) ---
             # Không sợ che mất u, nên cho phép lỗ to hơn để tăng độ khó (Strong Aug)
             # Random cận trên từ 15 đến 30 pixel (thay vì cố định 8px như cũ)
-            # safe_side_limit = random.randint(15, 30)
-            safe_side_limit = random.randint(25, 50)
+            safe_side_limit = random.randint(15, 30)
+            # safe_side_limit = random.randint(25, 50)
 
         # choice = random.choice(['GridDropout', 'CoarseDropout', 'GaussNoise', 'BrightnessContrast'])
         # image_aug = image.copy()
@@ -231,10 +231,10 @@ class OnlineStrongAugmentation:
                 if random.random() < 0.5:
                     # Chiến thuật 1: Cấu trúc (Lỗ TO - Ratio THẤP)
                     # Nới trần lên 60px thay vì 30px
-                    # real_limit = max(31, min(int(np.sqrt(0.4 * current_area)), 60))
-                    real_limit = max(50, min(int(np.sqrt(0.4 * current_area)), 100))
-                    # target_hole_size = random.randint(30, real_limit)
-                    target_hole_size = random.randint(50, real_limit)
+                    real_limit = max(31, min(int(np.sqrt(0.4 * current_area)), 60))
+                    # real_limit = max(50, min(int(np.sqrt(0.4 * current_area)), 100))
+                    target_hole_size = random.randint(30, real_limit)
+                    # target_hole_size = random.randint(50, real_limit)
                     # target_hole_size = random.randint(30, real_limit) 
                     suggested_ratio_min, suggested_ratio_max = 0.15, 0.3
                 else:
