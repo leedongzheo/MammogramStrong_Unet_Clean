@@ -46,6 +46,7 @@ class Trainer:
             'model_state_dict': self.model.state_dict(),
             'optimizer_state_dict': self.optimizer.state_dict(),
             'scheduler_state_dict': self.scheduler.state_dict(),   
+            'scheduler_state_dict': self.scheduler.state_dict() if self.scheduler else None, 
             'scaler_state_dict': self.scaler.state_dict(),
             'history': self.history,
             'best_dice_mass': self.best_dice_mass,
@@ -65,7 +66,7 @@ class Trainer:
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         
-        if 'scheduler_state_dict' in checkpoint:
+        if 'scheduler_state_dict' in checkpoint and self.scheduler and checkpoint['scheduler_state_dict']:
             self.scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
         if 'scaler_state_dict' in checkpoint:
             self.scaler.load_state_dict(checkpoint['scaler_state_dict'])
@@ -139,7 +140,9 @@ class Trainer:
                 clip_grad_norm_(self.model.parameters(), 1.0)
                 self.scaler.step(self.optimizer)
                 self.scaler.update()
-                self.scheduler.step(self.current_epoch + i / len(loader)) 
+                # Step Scheduler theo batch (CosineAnnealingWarmRestarts cần điều này)
+                if self.scheduler:
+                    self.scheduler.step(self.current_epoch + i / len(loader)) 
 
             epoch_loss += loss.item()
             # Hiển thị progress bar
@@ -196,7 +199,7 @@ class Trainer:
                 val_res = self.run_epoch(val_loader, is_train=False)
 
             # --- Logging ---
-            current_lr = self.scheduler.get_last_lr()[0]
+            current_lr = self.scheduler.get_last_lr()[0] if self.scheduler else self.optimizer.param_groups[0]['lr']
             print(f"Epoch {epoch+1}/{self.num_epochs} | LR: {current_lr:.2e}")
             # In kết quả chi tiết
             print(f"Train - Loss: {train_res['loss']:.4f}")
@@ -280,13 +283,18 @@ class Trainer:
             for i, (images, masks, image_paths) in test_bar:
                 images, masks = images.to(self.device), masks.to(self.device)
                 # Forward pass
+                # để tính probability cho visualization.
                 logits = self.model(images)
+                if isinstance(logits, (list, tuple)):
+                    logits_for_pred = logits[0]
+                else:
+                    logits_for_pred = logits
                 # 1. Tính Metric (Truyền logits thẳng vào, hàm hard tự lo phần còn lại)
-                batch_dices = dice_coeff_hard(logits, masks, threshold = 0.3)
-                batch_ious = iou_core_hard(logits, masks, threshold = 0.3)
+                batch_dices = dice_coeff_hard(logits_for_pred, masks, threshold=0.3)
+                batch_ious = iou_core_hard(logits_for_pred, masks, threshold=0.3)
                 if save_visuals:
                     # Tính xác suất để visualize (0 -> 1)
-                    probs = torch.sigmoid(logits)
+                    probs = torch.sigmoid(logits_for_pred) # Sigmoid chỉ chạy trên Tensor, không chạy trên List
                     # Tạo mask nhị phân (0 hoặc 1) để vẽ
                     preds = (probs > 0.3).float()
                 # Lặp từng ảnh trong batch để tính metric và vẽ
