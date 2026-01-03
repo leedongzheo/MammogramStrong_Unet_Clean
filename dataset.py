@@ -318,7 +318,7 @@ class OnlineStrongAugmentation:
 
         elif choice == 'CLAHE':
 	        # Cân bằng histogram thích ứng (Rất tốt để làm nổi bật chi tiết trong vùng tối/sáng)
-            aug = A.CLAHE(clip_limit=4.0, tile_grid_size=(8, 8), p=1.0)
+            aug = A.CLAHE(clip_limit=4.0, tile_grid_size=(12, 12), p=1.0)
             image_aug = aug(image=image)['image']
         return image_aug
 
