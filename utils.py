@@ -351,7 +351,7 @@ def visualize_prediction(img_tensor, mask_tensor, pred_tensor, save_path, iou_sc
     # 2. Chỉ lấy kênh Green (CLAHE) để hiển thị cho rõ (Vì nó sáng và chi tiết nhất)
     # Hoặc hiển thị cả ảnh RGB cũng được, nhưng màu sẽ hơi lạ (tím/xanh).
     # Ở đây mình chọn hiển thị kênh CLAHE (Channel 1) dưới dạng ảnh xám cho chuyên nghiệp.
-    display_img = full_img_rgb[:, :, 1] 
+    # display_img = full_img_rgb[:, :, 1] 
     # orig_img = unnormalize(img_tensor) 
     gt_mask = mask_tensor.squeeze().cpu().numpy()
     pred_mask = pred_tensor.squeeze().cpu().numpy()
@@ -364,7 +364,8 @@ def visualize_prediction(img_tensor, mask_tensor, pred_tensor, save_path, iou_sc
     # 1. Ảnh gốc (Hiển thị kênh CLAHE)
     plt.subplot(1, 3, 1)
     # plt.imshow(orig_img)
-    plt.imshow(display_img, cmap='gray')
+    # plt.imshow(display_img, cmap='gray')
+    plt.imshow(full_img_rgb)
     plt.title("Input (CLAHE Channel)")
     plt.axis('off')
 
@@ -378,7 +379,8 @@ def visualize_prediction(img_tensor, mask_tensor, pred_tensor, save_path, iou_sc
 
     # 3. Overlay
     plt.subplot(1, 3, 3)
-    plt.imshow(display_img, cmap='gray')
+    # plt.imshow(display_img, cmap='gray')
+    plt.imshow(full_img_rgb)
     # Doi 0.6 thanh 0.4
     plt.imshow(np.ma.masked_where(gt_mask == 0, gt_mask), cmap=cmap_gt, alpha=0.6, interpolation='none')
     #  Doi 0.4 thanh 0.6
