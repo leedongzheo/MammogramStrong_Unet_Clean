@@ -169,8 +169,8 @@ class Trainer:
                 self.scaler.step(self.optimizer)
                 self.scaler.update()
                 # Step Scheduler theo batch (CosineAnnealingWarmRestarts cần điều này)
-                if self.scheduler:
-                    self.scheduler.step(self.current_epoch + i / len(loader)) 
+                # if self.scheduler:
+                #     self.scheduler.step(self.current_epoch + i / len(loader)) 
 
             epoch_loss += loss.item()
             # Hiển thị progress bar
@@ -221,7 +221,9 @@ class Trainer:
             
             # --- Training ---
             train_res = self.run_epoch(train_loader, is_train=True)
-            
+            # --- [THÊM MỚI] Cập nhật Scheduler tại cuối mỗi Epoch ---
+            if self.scheduler:
+                self.scheduler.step()  # <--- Gọi không tham số
             # --- Validation ---
             with torch.no_grad():
                 val_res = self.run_epoch(val_loader, is_train=False)
