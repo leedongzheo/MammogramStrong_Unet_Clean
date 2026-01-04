@@ -331,7 +331,7 @@ def main(args):
     elif args.mode == "evaluate":
         print(f"[INFO] Mode: EVALUATING FULL DATASET")
         
-        trainLoader, validLoader, testLoader = get_dataloaders(aug_mode='none')
+        trainLoader, validLoader, testLoader = get_dataloaders(aug_mode='none', state='evaluate')
         
         eval_tasks = [
             (trainLoader, "train"),
