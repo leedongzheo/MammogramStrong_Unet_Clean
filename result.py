@@ -44,7 +44,7 @@ def export(trainer):
         print(f"[WARN] Không tìm thấy checkpoint để xuất lịch sử tại {checkpoint_path}")
         return
 
-    checkpoint = torch.load(checkpoint_path, map_location="cpu")
+    checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
     
     # Lấy history dictionary
     history = checkpoint.get('history', {})
