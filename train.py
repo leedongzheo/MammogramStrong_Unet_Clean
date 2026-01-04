@@ -236,7 +236,8 @@ def main(args):
         trainer.early_stop_counter = 0
         # Chạy GD3 đến khi Early Stop kích hoạt        
         trainer.train(trainLoader_strong, validLoader, resume_path=None) 
-        # export(trainer)
+        print("\n[INFO] Exporting Main Training Results (Stage 1-3)...")
+        export(trainer)
         # =========================================================
         # GIAI ĐOẠN 4: SWA (STOCHASTIC WEIGHT AVERAGING)
         # =========================================================
@@ -248,12 +249,18 @@ def main(args):
             print("="*40)
 
             # 1. QUAN TRỌNG: Load lại BEST MODEL của GD3 (Không dùng model cuối cùng)
-            best_model_path = "best_dice_mass_model.pth"
-            if os.path.exists(best_model_path):
+            # best_model_path = "best_dice_mass_model.pth"
+            best_ep = trainer.best_epoch_dice
+            best_d = trainer.best_dice_mass
+            folder_name = f"output_epoch{best_ep}_diceMass{best_d:.4f}"
+            exported_best_model_path = os.path.join(BASE_OUTPUT, folder_name, "best_dice_mass_model.pth")
+            if os.path.exists(exported_best_model_path):
                 print(f"[INFO] Loading BEST model from Stage 3 for SWA: {best_model_path}")
-                trainer.load_checkpoint(best_model_path)
+                trainer.load_checkpoint(exported_best_model_path)
             else:
-                print("[WARNING] Could not find best_dice_mass_model.pth, continuing with current model state.")
+                print("[WARNING] Could not find exported best model. Trying local 'best_dice_mass_model.pth'...")
+                if os.path.exists("best_dice_mass_model.pth"):
+                    trainer.load_checkpoint("best_dice_mass_model.pth")
 
             # 2. Khởi tạo SWA
             swa_model = AveragedModel(trainer.model)
@@ -306,13 +313,13 @@ def main(args):
                 'best_val_loss': trainer.best_val_loss, 
                 'best_dice_mass': trainer.best_dice_mass,
                 'best_iou_mass': trainer.best_iou_mass,
-                'history': trainer.history,
+                # 'history': trainer.history,
                 
                 # QUAN TRỌNG: KHÔNG ĐƯỢC THÊM 'scheduler_state_dict' VÀO ĐÂY
                 # Nếu thêm 'scheduler_state_dict': None -> Sẽ bị lỗi NoneType crash ngay.
             }
             torch.save(swa_checkpoint, swa_save_path)
-            export(trainer)
+            # export(trainer)
             # Đánh giá Model SWA
             print("\n[INFO] Evaluating SWA Model...")
             # Gán model SWA vào trainer để evaluate
