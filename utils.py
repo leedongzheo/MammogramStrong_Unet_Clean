@@ -144,20 +144,87 @@ class TverskyLoss(nn.Module):
         return 1.0 - tversky
 
 class ComboLoss(nn.Module):
-    def __init__(self, alpha=0.5, ce_ratio=0.5, focal_gamma=2.0):
+    def __init__(self, alpha=0.5, ce_ratio=0.5, focal_gamma=2.0, deep_supervision=True):
         super().__init__()
         self.alpha = alpha
         self.ce_ratio = ce_ratio
         self.focal_gamma = focal_gamma
+        self.deep_supervision = deep_supervision
+        # Định nghĩa trọng số cho các output (Giống FocalTversky)
+        # Output chính (index 0) quan trọng nhất
+        self.ds_weights = [1.0, 0.5, 0.25, 0.1] 
 
     def forward(self, logits, targets):
+        """
+        Combo Loss = Ratio * Focal + (1 - Ratio) * Dice
+        Hỗ trợ Deep Supervision (List input)
+        """
+        # --- TRƯỜNG HỢP 1: DEEP SUPERVISION (Logits là List) ---
         if isinstance(logits, (list, tuple)):
-            logits = logits[0] # Chỉ tính loss cho output chính
-        dice_loss = dice_coef_loss_per_image(logits, targets).mean()
-        focal_loss = binary_focal_loss_with_logits(
-            logits, targets, alpha=self.alpha, gamma=self.focal_gamma, reduction="mean"
-        )
-        return self.ce_ratio * focal_loss + (1 - self.ce_ratio) * dice_loss
+            total_loss = 0
+            # Tính tổng trọng số để normalize (như bạn đã làm bên FocalTversky)
+            # Logic: Lấy danh sách weight tương ứng với số lượng output thực tế
+            current_weights_len = min(len(logits), len(self.ds_weights))
+            current_weights = self.ds_weights[:current_weights_len]
+            
+            # Nếu output nhiều hơn weight định sẵn, cộng thêm phần dư 0.05 vào tổng
+            if len(logits) > len(self.ds_weights):
+                sum_w = sum(current_weights) + (len(logits) - len(self.ds_weights)) * 0.05
+            else:
+                sum_w = sum(current_weights)
+
+            # Duyệt qua từng output
+            for i, logit in enumerate(logits):
+                # Lấy trọng số w
+                w = self.ds_weights[i] if i < len(self.ds_weights) else 0.05
+                # Normalize
+                w = w / sum_w
+                
+                # Resize targets nếu cần (cho các tầng sâu kích thước nhỏ)
+                if logit.shape[-2:] != targets.shape[-2:]:
+                     target_resized = F.interpolate(targets, size=logit.shape[-2:], mode='nearest')
+                else:
+                     target_resized = targets
+                
+                # --- TÍNH LOSS THÀNH PHẦN ---
+                # 1. Dice
+                dice_loss = dice_coef_loss_per_image(logit, target_resized).mean()
+                # 2. Focal
+                focal_loss = binary_focal_loss_with_logits(
+                    logit, target_resized, 
+                    alpha=self.alpha, gamma=self.focal_gamma, reduction="mean"
+                )
+                
+                # Tổng hợp Combo cho tầng này
+                layer_loss = self.ce_ratio * focal_loss + (1 - self.ce_ratio) * dice_loss
+                
+                # Cộng dồn vào tổng loss với trọng số w
+                total_loss += w * layer_loss
+            
+            return total_loss
+
+        # --- TRƯỜNG HỢP 2: BÌNH THƯỜNG (Logits là Tensor đơn) ---
+        else:
+            dice_loss = dice_coef_loss_per_image(logits, targets).mean()
+            focal_loss = binary_focal_loss_with_logits(
+                logits, targets, alpha=self.alpha, gamma=self.focal_gamma, reduction="mean"
+            )
+            return self.ce_ratio * focal_loss + (1 - self.ce_ratio) * dice_loss
+# class ComboLoss(nn.Module):
+#     def __init__(self, alpha=0.5, ce_ratio=0.5, focal_gamma=2.0):
+#         super().__init__()
+#         self.alpha = alpha
+#         self.ce_ratio = ce_ratio
+#         self.focal_gamma = focal_gamma
+
+#     def forward(self, logits, targets):
+#         if isinstance(logits, (list, tuple)):
+#             logits = logits[0] # Chỉ tính loss cho output chính
+#         dice_loss = dice_coef_loss_per_image(logits, targets).mean()
+#         focal_loss = binary_focal_loss_with_logits(
+#             logits, targets, alpha=self.alpha, gamma=self.focal_gamma, reduction="mean"
+#         )
+#         return self.ce_ratio * focal_loss + (1 - self.ce_ratio) * dice_loss
 
 # ==========================================
 # 3. FOCAL TVERSKY LOSS & GLOBAL INSTANCE
@@ -204,10 +271,19 @@ class FocalTverskyLoss(nn.Module):
         # --- TRƯỜNG HỢP 1: DEEP SUPERVISION (Logits là List) ---
         if isinstance(logits, (list, tuple)):
             total_loss = 0
+            # Tính tổng trọng số để normalize (nếu muốn loss ổn định)
+            current_weights_len = min(len(logits), len(self.ds_weights))
+            current_weights = self.ds_weights[:current_weights_len]
+            if len(logits) > len(self.ds_weights):
+                sum_w = sum(current_weights) + (len(logits) - len(self.ds_weights)) * 0.05
+            else:
+                sum_w = sum(current_weights)
             # Duyệt qua từng output trong list
             for i, logit in enumerate(logits):
                 # Lấy trọng số tương ứng (nếu vượt quá list weights thì lấy cái cuối cùng)
                 w = self.ds_weights[i] if i < len(self.ds_weights) else 0.05
+                # Normalize (Optional): w = w / sum_w
+                w = w / sum_w
                 # Resize targets nếu kích thước không khớp (chỉ xảy ra ở tầng rất sâu)
                 if logit.shape[-2:] != targets.shape[-2:]:
                      target_resized = F.interpolate(targets, size=logit.shape[-2:], mode='nearest')
