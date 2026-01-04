@@ -90,7 +90,7 @@ def main(args):
         encoder_weights="imagenet",
         in_channels=3,
         classes=1,
-        encoder_params={"dropout_rate": 0.5} 
+        drop_path_rate=0.2
 )
     # 2. Khởi tạo Optimizer
     opt = optimizer_module.optimizer(model=model) 
