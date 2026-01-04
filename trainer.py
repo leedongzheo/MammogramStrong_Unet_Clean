@@ -61,7 +61,8 @@ class Trainer:
 
     def load_checkpoint(self, path):
         print(f"[INFO] Loading checkpoint: {path}")
-        checkpoint = torch.load(path, map_location=self.device)
+        # Thêm weights_only=False
+        checkpoint = torch.load(path, map_location=self.device, weights_only=False)
         
         self.model.load_state_dict(checkpoint['model_state_dict'])
         self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
