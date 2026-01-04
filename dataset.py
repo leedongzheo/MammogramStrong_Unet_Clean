@@ -535,11 +535,11 @@ def get_dataloaders(aug_mode='none', state='train'):
         print("[INFO] Training Mode: Using WeightedRandomSampler (Balanced Batch)")
         # ... (Code tính weights giữ nguyên) ...
         weight_normal = 1. / num_normal if num_normal > 0 else 0
-	    weight_mass = 3. / num_mass if num_mass > 0 else 0
-	    class_weights = torch.tensor([weight_normal, weight_mass])
+        weight_mass = 3. / num_mass if num_mass > 0 else 0
+        class_weights = torch.tensor([weight_normal, weight_mass])
 	    
-	    samples_weights = class_weights[train_targets]
-	    sampler = WeightedRandomSampler(weights=samples_weights, num_samples=len(samples_weights), replacement=True)
+        samples_weights = class_weights[train_targets]
+        sampler = WeightedRandomSampler(weights=samples_weights, num_samples=len(samples_weights), replacement=True)
         
     # else: # Train không Augment hoặc trường hợp khác
     #     sampler = None
