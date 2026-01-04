@@ -541,7 +541,7 @@ def get_dataloaders(aug_mode='none'):
         sampler=sampler,        # Dùng sampler để cân bằng batch
         shuffle=False,          # Sampler bật thì Shuffle phải tắt
         pin_memory=PIN_MEMORY,
-        num_workers=4, 
+        num_workers=8, 
         worker_init_fn=seed_worker, 
         generator=g
     )
@@ -551,7 +551,7 @@ def get_dataloaders(aug_mode='none'):
         shuffle=False, 
         batch_size=batch_size*2, 
         pin_memory=PIN_MEMORY,
-        num_workers=4, 
+        num_workers=8, 
         worker_init_fn=seed_worker, 
         generator=g
     )
@@ -561,7 +561,7 @@ def get_dataloaders(aug_mode='none'):
         shuffle=False,
         batch_size=batch_size*2, 
         pin_memory=PIN_MEMORY,
-        num_workers=4, 
+        num_workers=8, 
         worker_init_fn=seed_worker, 
         generator=g
     )   
