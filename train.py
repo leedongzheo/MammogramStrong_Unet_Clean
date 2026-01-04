@@ -75,13 +75,21 @@ def main(args):
     #     classes=1, 
     #     decoder_attention_type="scse"   
     # )
-    model = smp.UnetPlusPlus(
-        encoder_name="efficientnet-b4",
+#     model = smp.UnetPlusPlus(
+#         encoder_name="efficientnet-b4",
+#         encoder_weights="imagenet",
+#         in_channels=3,
+#         classes=1,
+#         decoder_attention_type="scse",
+#         deep_supervision=True,  # <--- Nhớ thêm dấu phẩy ở đây
+#         encoder_params={"dropout_rate": 0.5} 
+# )
+    # DeepLabV3+ bắt buộc ảnh đầu vào kích thước chia hết cho 16 (ví dụ 512x512, 640x640)
+    model = smp.DeepLabV3Plus(
+        encoder_name="tu-resnest50d", # ResNeSt rất mạnh cho y tế, hoặc dùng efficientnet-b3
         encoder_weights="imagenet",
         in_channels=3,
         classes=1,
-        decoder_attention_type="scse",
-        deep_supervision=True,  # <--- Nhớ thêm dấu phẩy ở đây
         encoder_params={"dropout_rate": 0.5} 
 )
     # 2. Khởi tạo Optimizer
