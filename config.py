@@ -21,7 +21,7 @@ import gc
 # base path of the dataset
 import shutil
 import sys
-from torch.optim.lr_scheduler import CosineAnnealingLR, MultiStepLR, ReduceLROnPlateau, CosineAnnealingWarmRestarts
+from torch.optim.lr_scheduler import CosineAnnealingLR, MultiStepLR, ReduceLROnPlateau, CosineAnnealingWarmRestarts, LinearLR, SequentialLR
 import segmentation_models_pytorch as smp
 import torch.nn.functional as F
 from torch.cuda.amp import autocast, GradScaler
