@@ -16,8 +16,10 @@ METADATA_PATH = "train_metadata.csv"
 # Giá trị an toàn mặc định nếu không tìm thấy trong CSV
 GLOBAL_MIN_AREA_DEFAULT = 143.5  
 # Mean và Std chuẩn cho bộ 3 kênh (Original, CLAHE, Gamma)
-NORM_MEAN = [0.1608, 0.1751, 0.1216]
-NORM_STD  = [0.2526, 0.2466, 0.1983]
+# NORM_MEAN = [0.1608, 0.1751, 0.1216]
+# NORM_STD  = [0.2526, 0.2466, 0.1983]
+NORM_MEAN = [0.2512, 0.2741, 0.1900]
+NORM_STD = [0.2775, 0.2605, 0.2203]
 # --- HELPER FUNCTIONS ---
 def get_clean_breast_mask(image):
     if len(image.shape) == 3:
