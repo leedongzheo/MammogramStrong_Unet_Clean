@@ -74,8 +74,8 @@ def main(args):
     print("-" * 50)
     import numpy as np    
     from trainer import Trainer
-    # from model import Unet, unet_pyramid_cbam_gate, Swin_unet
-    from model import Swin_unet
+    from model import Unet, unet_pyramid_cbam_gate, Swin_unet
+    # from model import Swin_unet
     import optimizer as optimizer_module
     from dataset import get_dataloaders
     from result import export, export_evaluate
@@ -93,31 +93,7 @@ def main(args):
     
     # 1. Khởi tạo Model
     print(f"[INFO] Initializing Model...")
-    # model = smp.UnetPlusPlus(
-    #     encoder_name="efficientnet-b2", 
-    #     encoder_weights="imagenet",     
-    #     in_channels=3, 
-    #     classes=1, 
-    #     decoder_attention_type="scse"   
-    # )
-#     model = smp.UnetPlusPlus(
-#         encoder_name="efficientnet-b4",
-#         encoder_weights="imagenet",
-#         in_channels=3,
-#         classes=1,
-#         decoder_attention_type="scse",
-#         deep_supervision=True,  # <--- Nhớ thêm dấu phẩy ở đây
-#         encoder_params={"dropout_rate": 0.5} 
-# )
-    # DeepLabV3+ bắt buộc ảnh đầu vào kích thước chia hết cho 16 (ví dụ 512x512, 640x640)
-#     model = smp.DeepLabV3Plus(
-#         encoder_name="tu-resnest50d", # ResNeSt rất mạnh cho y tế, hoặc dùng efficientnet-b3
-#         encoder_weights="imagenet",
-#         in_channels=3,
-#         classes=1,
-#         drop_path_rate=0.2
-# )
-    model = PyramidCbamGateResNetUNet(in_channels=3, out_channels=1)
+    model = unet_pyramid_cbam_gate.PyramidCbamGateResNetUNet(in_channels=3, out_channels=1, deep_supervision=True)
     # 2. Khởi tạo Optimizer
     opt = optimizer_module.optimizer(model=model) 
 
@@ -287,7 +263,7 @@ def main(args):
             folder_name = f"output_epoch{best_ep}_diceMass{best_d:.4f}"
             exported_best_model_path = os.path.join(BASE_OUTPUT, folder_name, "best_dice_mass_model.pth")
             if os.path.exists(exported_best_model_path):
-                print(f"[INFO] Loading BEST model from Stage 3 for SWA: {best_model_path}")
+                print(f"[INFO] Loading BEST model from Stage 3 for SWA: {exported_best_model_path}")
                 trainer.load_checkpoint(exported_best_model_path)
             else:
                 print("[WARNING] Could not find exported best model. Trying local 'best_dice_mass_model.pth'...")
