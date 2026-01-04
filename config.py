@@ -47,7 +47,7 @@ NUM_CLASSES = 1
 # BETA = (0.99, 0.999)
 BETA = (0.9, 0.999)
 AMSGRAD=False
-
+WARMUP_EPOCHS = 10
 """Phần II: Xử lý logic"""
 args = get_args()
 #  Tham số trường hợp:
@@ -62,6 +62,7 @@ weight_decay1 = args.weight_decay if args.weight_decay else WEIGHT_DECAY1
 weight_decay2 = args.weight_decay if args.weight_decay else WEIGHT_DECAY2
 input_image_width, input_image_height = args.img_size if args.img_size else [INPUT_IMAGE_WIDTH,INPUT_IMAGE_HEIGHT]
 numclass = args.numclass if args.numclass else NUM_CLASSES
+warmup_epochs = args.warmup if args.warmup else WARMUP_EPOCHS
 # THAM SỐ LUÔN THAY ĐỔI THEO nhap.py
 NUM_EPOCHS = args.epoch
 T_max = NUM_EPOCHS  # T_max là số epoch bạn muốn dùng cho giảm lr
