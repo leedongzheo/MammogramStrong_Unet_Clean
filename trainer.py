@@ -42,7 +42,7 @@ class Trainer:
             self.optimizer, 
             start_factor = 0.01, # Bắt đầu từ LR * 0.01
             end_factor = 1.0,    # Kết thúc tại LR * 1.0
-            total_iters = WARMUP_EPOCHS      # Kéo dài 10 epoch
+            total_iters = warmup_epochs      # Kéo dài 10 epoch
         )
 
         # 2. Scheduler 2: Main (Cosine Annealing) chạy sau khi warm-up xong
@@ -57,7 +57,7 @@ class Trainer:
         self.scheduler = SequentialLR(
             self.optimizer, 
             schedulers=[warmup_scheduler, main_scheduler], 
-            milestones=[WARMUP_EPOCHS] 
+            milestones=[warmup_epochs] 
         )
         # Start epoch
         self.start_epoch = 0
