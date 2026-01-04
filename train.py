@@ -256,7 +256,7 @@ def main(args):
             print(f"[CONFIG] SWA Scheduler set. LR: {swa_lr}")
 
             # 3. Cấu hình vòng lặp SWA
-            SWA_EPOCHS = 20 # Chạy cố định
+            SWA_EPOCHS = 5 # Chạy cố định
             trainer.patience = 999 # Tắt Early Stop
             trainer.early_stop_counter = 0
             
