@@ -60,7 +60,7 @@ class OnlineStrongAugmentation:
         self.resize = A.Resize(height=output_size, width=output_size, interpolation=cv2.INTER_LINEAR)
         
         self.normalize_and_tensor = A.Compose([
-            A.Normalize(mean=[0.1608, 0.1751, 0.1216], std=[0.2526, 0.2466, 0.1983]),
+            A.Normalize(mean=NORM_MEAN, std=NORM_STD),
             ToTensorV2()
         ])
 
@@ -564,7 +564,7 @@ def get_dataloaders(aug_mode='none', state='train'):
         shuffle=False, 
         batch_size=batch_size*2, 
         pin_memory=PIN_MEMORY,
-        num_workers=8, 
+        num_workers=4, 
         worker_init_fn=seed_worker, 
         generator=g
     )
@@ -574,7 +574,7 @@ def get_dataloaders(aug_mode='none', state='train'):
         shuffle=False,
         batch_size=batch_size*2, 
         pin_memory=PIN_MEMORY,
-        num_workers=8, 
+        num_workers=4, 
         worker_init_fn=seed_worker, 
         generator=g
     )   
