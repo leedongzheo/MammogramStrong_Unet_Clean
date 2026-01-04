@@ -91,13 +91,13 @@ class DecoderBlock(nn.Module):
 # --- MODEL CHÍNH VỚI RESNET BACKBONE ---
 
 class PyramidCbamGateResNetUNet(nn.Module):
-    def __init__(self, in_channels=3, out_channels=1, backbone_name='resnet34'):
+    def __init__(self, in_channels=3, out_channels=1, backbone_name='resnet34', deep_supervision=True):
         super(PyramidCbamGateResNetUNet, self).__init__()
         # 2. Pyramid Input Scaling Layers
+        self.deep_supervision = deep_supervision
         # Sửa kernel size và stride của AvgPool để downsample mạnh hơn cho khớp
         # Layer 1 của ResNet là H/4 (160x160) -> Cần pool input 640 xuống 160 (chia 4)
         self.pool_scale2 = nn.AvgPool2d(4, 4) 
-        
         # Layer 2 của ResNet là H/8 (80x80) -> Cần pool input 640 xuống 80 (chia 8)
         self.pool_scale3 = nn.AvgPool2d(8, 8)
 
@@ -168,7 +168,14 @@ class PyramidCbamGateResNetUNet(nn.Module):
 
         # Final Conv
         self.final = nn.Conv2d(32, out_channels, kernel_size=1)
-
+        # --- [THÊM MỚI] DEEP SUPERVISION HEADS ---
+        if self.deep_supervision:
+            # Các đầu ra phụ từ d1, d2, d3
+            # d1 (256ch), d2 (128ch), d3 (64ch)
+            self.seg_head_d1 = nn.Conv2d(256, out_channels, kernel_size=1)
+            self.seg_head_d2 = nn.Conv2d(128, out_channels, kernel_size=1)
+            self.seg_head_d3 = nn.Conv2d(64, out_channels, kernel_size=1)
+        # ----------------------------------------
     def forward(self, x):
         # --- PYRAMID INPUTS ---
         # Tạo các phiên bản thu nhỏ của ảnh đầu vào
@@ -246,5 +253,18 @@ class PyramidCbamGateResNetUNet(nn.Module):
         # Final Upsample (Về kích thước H gốc) & Conv
         out = self.final(d4)
         out = F.interpolate(out, scale_factor=2, mode='bilinear', align_corners=True)
-        
+        # --- [THÊM MỚI] RETURN LIST NẾU DEEP SUPERVISION ---
+        if self.deep_supervision and self.training:
+            # Lưu ý: Hàm Loss của bạn tự động resize target xuống, 
+            # nên ta KHÔNG cần upsample các output phụ lên kích thước gốc.
+            # Để nguyên kích thước nhỏ giúp tiết kiệm bộ nhớ và tính toán nhanh hơn.
+            
+            deep1 = self.seg_head_d1(d1) # Output từ tầng sâu nhất (nhỏ nhất)
+            deep2 = self.seg_head_d2(d2)
+            deep3 = self.seg_head_d3(d3)
+            
+            # Thứ tự return quan trọng: [Final, Phụ_to, Phụ_vừa, Phụ_nhỏ]
+            # Tương ứng với weights = [1.0, 0.5, 0.25, 0.1]
+            return [out, deep3, deep2, deep1] 
+        # ---------------------------------------------------        
         return out
