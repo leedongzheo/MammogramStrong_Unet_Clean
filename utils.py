@@ -348,6 +348,7 @@ def visualize_prediction(img_tensor, mask_tensor, pred_tensor, save_path, iou_sc
     """
     # 1. Khôi phục ảnh 3 kênh đầy đủ
     full_img_rgb = unnormalize(img_tensor) 
+    full_img_rgb = full_img_rgb[:, :, ::-1]
     # 2. Chỉ lấy kênh Green (CLAHE) để hiển thị cho rõ (Vì nó sáng và chi tiết nhất)
     # Hoặc hiển thị cả ảnh RGB cũng được, nhưng màu sẽ hơi lạ (tím/xanh).
     # Ở đây mình chọn hiển thị kênh CLAHE (Channel 1) dưới dạng ảnh xám cho chuyên nghiệp.
@@ -365,6 +366,8 @@ def visualize_prediction(img_tensor, mask_tensor, pred_tensor, save_path, iou_sc
     plt.subplot(1, 3, 1)
     # plt.imshow(orig_img)
     # plt.imshow(display_img, cmap='gray')
+    # plt.imshow(full_img_rgb)
+    
     plt.imshow(full_img_rgb)
     plt.title("Input (CLAHE Channel)")
     plt.axis('off')
@@ -391,3 +394,4 @@ def visualize_prediction(img_tensor, mask_tensor, pred_tensor, save_path, iou_sc
     plt.tight_layout()
     plt.savefig(save_path, dpi=150)
     plt.close()
+
