@@ -68,7 +68,12 @@ class Trainer:
         self.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
         
         if 'scheduler_state_dict' in checkpoint and self.scheduler and checkpoint['scheduler_state_dict']:
-            self.scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
+            try:
+                self.scheduler.load_state_dict(checkpoint['scheduler_state_dict'])
+            except Exception as e:
+                print(f"[WARNING] Scheduler structure changed (Linear -> Sequential). Resetting Scheduler.")
+                print(f"Details: {e}")
+                # Không load state cũ, để scheduler chạy lại từ đầu (tự tính toán dựa trên epoch hiện tại)
         if 'scaler_state_dict' in checkpoint:
             self.scaler.load_state_dict(checkpoint['scaler_state_dict'])
             
