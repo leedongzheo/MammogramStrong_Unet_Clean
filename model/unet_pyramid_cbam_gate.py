@@ -93,7 +93,16 @@ class DecoderBlock(nn.Module):
 class PyramidCbamGateResNetUNet(nn.Module):
     def __init__(self, in_channels=3, out_channels=1, backbone_name='resnet34'):
         super(PyramidCbamGateResNetUNet, self).__init__()
+        # 2. Pyramid Input Scaling Layers
+        # Sửa kernel size và stride của AvgPool để downsample mạnh hơn cho khớp
+        # Layer 1 của ResNet là H/4 (160x160) -> Cần pool input 640 xuống 160 (chia 4)
+        self.pool_scale2 = nn.AvgPool2d(4, 4) 
         
+        # Layer 2 của ResNet là H/8 (80x80) -> Cần pool input 640 xuống 80 (chia 8)
+        self.pool_scale3 = nn.AvgPool2d(8, 8)
+
+        # Layer 3 của ResNet là H/16 (40x40) -> Cần pool input 640 xuống 40 (chia 16)
+        self.pool_scale4 = nn.AvgPool2d(16, 16)
         # 1. Load Pre-trained ResNet
         # Ta dùng ResNet34 vì nó cân bằng tốt giữa tốc độ và hiệu suất
         # feature channels: [64, 64, 128, 256, 512] (layer0...layer4)
@@ -163,10 +172,12 @@ class PyramidCbamGateResNetUNet(nn.Module):
     def forward(self, x):
         # --- PYRAMID INPUTS ---
         # Tạo các phiên bản thu nhỏ của ảnh đầu vào
-        x_scale2 = self.avgpool(x)        # /2
-        x_scale3 = self.avgpool(x_scale2) # /4
-        x_scale4 = self.avgpool(x_scale3) # /8
-
+        # x_scale2 = self.avgpool(x)        # /2
+        # x_scale3 = self.avgpool(x_scale2) # /4
+        # x_scale4 = self.avgpool(x_scale3) # /8
+        x_scale2 = self.pool_scale2(x) # 640 -> 160 (Khớp e1)
+        x_scale3 = self.pool_scale3(x) # 640 -> 80  (Khớp e2)
+        x_scale4 = self.pool_scale4(x) # 640 -> 40  (Khớp e3)
         # --- ENCODER (RESNET) + PYRAMID FUSION ---
         # Stem: Conv1 -> BN -> ReLU
         e0 = self.encoder0(x) # (B, 64, H/2, W/2)
@@ -178,19 +189,22 @@ class PyramidCbamGateResNetUNet(nn.Module):
         # ResNet layer1 giữ nguyên kích thước (H/4)
         # Cộng feature map của ResNet với feature map của ảnh input (Residual connection style)
         e1 = self.encoder2(e0_pool) 
-        e1 = e1 + F.interpolate(feat_scale2, size=e1.shape[2:]) # Add fusion
+        # e1 = e1 + F.interpolate(feat_scale2, size=e1.shape[2:]) # Add fusion
+        e1 = e1 + feat_scale2
         e1 = self.cbam1(e1) # Apply CBAM
 
         # Layer 2 (128ch)
         feat_scale3 = self.scale3_conv(x_scale3)
         e2 = self.encoder3(e1) # Stride 2 -> H/8
-        e2 = e2 + F.interpolate(feat_scale3, size=e2.shape[2:]) # Add fusion
+        # e2 = e2 + F.interpolate(feat_scale3, size=e2.shape[2:]) # Add fusion
+        e2 = e2 + feat_scale3
         e2 = self.cbam2(e2)
 
         # Layer 3 (256ch)
         feat_scale4 = self.scale4_conv(x_scale4)
         e3 = self.encoder4(e2) # Stride 2 -> H/16
-        e3 = e3 + F.interpolate(feat_scale4, size=e3.shape[2:]) # Add fusion
+        # e3 = e3 + F.interpolate(feat_scale4, size=e3.shape[2:]) # Add fusion
+        e3 = e3 + feat_scale4 # <--- Cộng trực tiếp
         e3 = self.cbam3(e3)
 
         # Center (Layer 4 - 512ch)
