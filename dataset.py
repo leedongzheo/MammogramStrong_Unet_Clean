@@ -234,7 +234,7 @@ class OnlineStrongAugmentation:
                     # Chiến thuật 1: Cấu trúc (Lỗ TO - Ratio THẤP)
                     # Nới trần lên 60px thay vì 30px
                     # real_limit = max(31, min(int(np.sqrt(0.4 * current_area)), 60))
-                    real_limit = max(50, min(int(np.sqrt(0.4 * current_area)), 100)))
+                    real_limit = max(50, min(int(np.sqrt(0.4 * current_area)), 100))
                     target_hole_size = random.randint(50, real_limit)
                     # target_hole_size = random.randint(30, real_limit) 
                     suggested_ratio_min, suggested_ratio_max = 0.15, 0.3
