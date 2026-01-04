@@ -44,6 +44,31 @@ def set_seed():
     torch.cuda.manual_seed_all(SEED)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
+# --- [THÊM HÀM NÀY] HÀM HỖ TRỢ ĐÓNG/MỞ BĂNG ---
+def set_grad_status(model, freeze=True):
+    """
+    Hàm đóng băng hoặc mở băng Backbone/Encoder.
+    Hỗ trợ cả Model Custom (self.backbone) và Model SMP (self.encoder).
+    """
+    target_module = None
+    
+    # 1. Kiểm tra nếu là Model Custom (PyramidCbamGateResNetUNet)
+    if hasattr(model, 'backbone'):
+        target_module = model.backbone
+        name = "Backbone (ResNet)"
+    # 2. Kiểm tra nếu là Model SMP (DeepLabV3+, Unet++, ...)
+    elif hasattr(model, 'encoder'):
+        target_module = model.encoder
+        name = "Encoder (SMP)"
+    
+    if target_module:
+        for param in target_module.parameters():
+            param.requires_grad = not freeze # Freeze = True -> requires_grad = False
+        
+        status = "FROZEN ❄️" if freeze else "UNFROZEN 🔥"
+        print(f"[INFO] {name} is now {status}")
+    else:
+        print("[WARNING] Could not find 'backbone' or 'encoder' to freeze!")
 def main(args):  
     print(f"\n[DEBUG TRAIN] args.loss bạn nhập từ bàn phím = {args.loss}")
     print("-" * 50)
@@ -122,7 +147,7 @@ def main(args):
             # GIAI ĐOẠN 1: WARM-UP
             # =========================================================
             print("\n" + "="*40)
-            print(" GIAI ĐOẠN 1: WARM-UP (10 Epochs)")
+            print(" GIAI ĐOẠN 1: WARM-UP (Freeze Backbone) (10 Epochs)")
             print(f" Config: Light Augment | Loss: {args.loss}")
             print("="*40)
 
@@ -131,24 +156,29 @@ def main(args):
             # Đảm bảo params đúng cho GD1 (nếu dùng Focal)
             if args.loss == "FocalTversky_loss":
                 _focal_tversky_global.update_params(alpha=0.7, beta=0.3, gamma=1.33)
-
+            # --- [THÊM] ĐÓNG BĂNG BACKBONE ---
+            set_grad_status(model, freeze=True)
             trainer.num_epochs = args.warmup
             trainer.patience = 999      
             trainer.train(trainLoader_weak, validLoader, resume_path=None)
-            
+            # --- [THÊM] MỞ BĂNG BACKBONE (Để chuẩn bị cho GD2) ---
+            set_grad_status(model, freeze=False)
             resume_checkpoint = "last_model.pth" 
         else:
             print("\n[INFO] Skipping Stage 1 (Warm-up). Starting directly with Main Training.")
+            # Đảm bảo chắc chắn là đã Unfreeze nếu không chạy Stage 1
+            set_grad_status(model, freeze=False)
             resume_checkpoint = None
         # =========================================================
         # GIAI ĐOẠN 2: INTERMEDIATE TUNING (Chỉ FocalTversky)
         # =========================================================
         if args.loss == "FocalTversky_loss":
             print("\n" + "="*40)
-            print(" GIAI ĐOẠN 2: INTERMEDIATE TUNING")
+            print(" GIAI ĐOẠN 2: INTERMEDIATE TUNING (Full Finetune)")
             print(" Config: Heavy Augment | Alpha=0.7")
             print("="*40)
-
+            # Đảm bảo backbone đã được mở khóa (double check)
+            set_grad_status(model, freeze=False)
             trainLoader_strong, validLoader, _ = get_dataloaders(aug_mode=mode_stage23)
             
             # Update Params (Thực tế GD2 vẫn dùng 0.7, nhưng gọi lại cho chắc chắn hoặc nếu bạn muốn chỉnh khác)
@@ -176,6 +206,7 @@ def main(args):
         else:
             print("[WARNING] No checkpoint found for Stage 3! Training from scratch?")
             
+        set_grad_status(model, freeze=False)
         if args.loss == "FocalTversky_loss":
             # >> CHIẾN LƯỢC 3 GIAI ĐOẠN (Focal) <<
             print(" Config: Heavy Augment | Alpha=0.4 (Reduce FP) | LR REDUCED Strategy: Start Low (1e-5) -> Restart High (1e-4)")
