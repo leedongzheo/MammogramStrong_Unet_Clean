@@ -427,7 +427,7 @@ def seed_worker(worker_id):
 # ==============================================================================
 # 4. GET DATALOADERS FUNCTION
 # ==============================================================================
-def get_dataloaders(aug_mode='none'):   
+def get_dataloaders(aug_mode='none', state='train'):   
     print(f"\n[INFO] Initializing Dataloaders with Augmentation Mode: {aug_mode.upper()}")
     
     # 1. Định nghĩa Transform dựa trên mode
@@ -524,13 +524,26 @@ def get_dataloaders(aug_mode='none'):
     
     print(f"[INFO] Distribution -> Normal: {num_normal} | Mass: {num_mass}")
     
-    weight_normal = 1. / num_normal if num_normal > 0 else 0
-    weight_mass = 2. / num_mass if num_mass > 0 else 0
-    class_weights = torch.tensor([weight_normal, weight_mass])
+    # --- LOGIC SAMPLER MỚI ---
+    # Chỉ bật Sampler khi đang TRAIN và không phải là EVALUATE
+    if state == 'evaluate':
+        print("[INFO] Evaluation Mode: Using Sequential Sampler (No Duplicates - Full Dataset)")
+        sampler = None
+        shuffle = False # Duyệt tuần tự 1474 ảnh
     
-    samples_weights = class_weights[train_targets]
-    sampler = WeightedRandomSampler(weights=samples_weights, num_samples=len(samples_weights), replacement=True)
-    
+    elif state == 'train': # Đang Train có Augment
+        print("[INFO] Training Mode: Using WeightedRandomSampler (Balanced Batch)")
+        # ... (Code tính weights giữ nguyên) ...
+        weight_normal = 1. / num_normal if num_normal > 0 else 0
+	    weight_mass = 2. / num_mass if num_mass > 0 else 0
+	    class_weights = torch.tensor([weight_normal, weight_mass])
+	    
+	    samples_weights = class_weights[train_targets]
+	    sampler = WeightedRandomSampler(weights=samples_weights, num_samples=len(samples_weights), replacement=True)
+        
+    # else: # Train không Augment hoặc trường hợp khác
+    #     sampler = None
+    #     shuffle = True # Shuffle cho ngẫu nhiên nếu không dùng sampler
     # 5. Tạo DataLoaders
     g = torch.Generator()
     g.manual_seed(SEED)
