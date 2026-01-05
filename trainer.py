@@ -222,14 +222,27 @@ class Trainer:
             # --- Training ---
             train_res = self.run_epoch(train_loader, is_train=True)
             # --- [THÊM MỚI] Cập nhật Scheduler tại cuối mỗi Epoch ---
-            if self.scheduler:
-                self.scheduler.step()  # <--- Gọi không tham số
+            # if self.scheduler:
+            #     self.scheduler.step()  # <--- Gọi không tham số
             # --- Validation ---
             with torch.no_grad():
                 val_res = self.run_epoch(val_loader, is_train=False)
-
+            # --- [LOGIC SCHEDULER THÔNG MINH] ---
+            if self.scheduler:
+                # Kiểm tra nếu là ReduceLROnPlateau -> Cần truyền metric
+                if isinstance(self.scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
+                    # Truyền Dice Mass vào để theo dõi (Cần set mode='max' ở main)
+                    self.scheduler.step(val_res['dice_mass'])
+                else:
+                    # Các Scheduler khác (Cosine, Linear, Arithmetic...) -> Không truyền gì
+                    self.scheduler.step()
+            # ------------------------------------
             # --- Logging ---
-            current_lr = self.scheduler.get_last_lr()[0] if self.scheduler else self.optimizer.param_groups[0]['lr']
+            try:
+                current_lr = self.scheduler.get_last_lr()[0]
+            except:
+                current_lr = self.optimizer.param_groups[0]['lr']
+            # current_lr = self.scheduler.get_last_lr()[0] if self.scheduler else self.optimizer.param_groups[0]['lr']
             print(f"Epoch {epoch+1}/{self.num_epochs} | LR: {current_lr:.2e}")
             # In kết quả chi tiết
             print(f"Train - Loss: {train_res['loss']:.4f}")
@@ -272,6 +285,8 @@ class Trainer:
                 print(f"[*] New best IoU: {self.best_iou_mass:.4f} at epoch {epoch+1}")
 
             # 3. EARLY STOPPING dựa trên Val Loss (Theo yêu cầu)
+            # Lưu ý: Scheduler ReduceLR cũng có patience riêng (để giảm LR), 
+            # còn ở đây là patience để DỪNG TRAIN. Hai cái này hoạt động độc lập.
             if val_res['loss'] < self.best_val_loss:
                 self.best_val_loss = val_res['loss']
                 self.best_epoch_loss = epoch + 1
