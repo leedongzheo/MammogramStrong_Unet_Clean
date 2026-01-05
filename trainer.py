@@ -268,6 +268,8 @@ class Trainer:
                         min_lr = MIN_LR
                     )
                     print(f"[CYCLIC STRATEGY] 🔄 Scheduler re-initialized! Starting new reduction cycle.")
+                    self.early_stop_counter = 0 
+                    print(f"[CYCLIC STRATEGY] 🛡️ Early Stopping counter reset to 0!")
             # current_lr = self.scheduler.get_last_lr()[0] if self.scheduler else self.optimizer.param_groups[0]['lr']
             print(f"Epoch {epoch+1}/{self.num_epochs} | LR: {current_lr:.2e}")
             # In kết quả chi tiết
