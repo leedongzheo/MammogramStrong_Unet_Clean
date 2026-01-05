@@ -82,7 +82,7 @@ def main(args):
     global trainer
     from utils import get_loss_instance, _focal_tversky_global
     from torch.optim.swa_utils import AveragedModel, SWALR, update_bn
-
+    import shutil
     # from utils import loss_func
 
     print("-" * 50)
@@ -169,6 +169,11 @@ def main(args):
             trainer.train(trainLoader_strong, validLoader, resume_path=resume_checkpoint)
             resume_checkpoint = "best_dice_mass_model.pth"
             print(f"[TRANSITION] Stage 2 Finished. Best model '{resume_checkpoint}' will be loaded for Stage 3.")
+            if os.path.exists(resume_checkpoint):
+                backup_name = "stage2_final_best.pth" # Tên file backup
+                shutil.copy(resume_checkpoint, backup_name)
+                print(f"[BACKUP] Safe copy created: {resume_checkpoint} -> {backup_name}")
+        # ----------------------------------------
         else:
             print("\n[INFO] Skipping Stage 2 (Only for FocalTversky).")
 
