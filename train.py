@@ -69,44 +69,44 @@ def set_grad_status(model, freeze=True):
         print(f"[INFO] {name} is now {status}")
     else:
         print("[WARNING] Could not find 'backbone' or 'encoder' to freeze!")
-class ArithmeticCosineAnnealingLR(_LRScheduler):
-    def __init__(self, optimizer, T_0, T_add, eta_min=0, last_epoch=-1):
-        """
-        Custom Scheduler: Cosine Annealing với chu kỳ tăng theo cấp số cộng.
-        Args:
-            T_0: Độ dài chu kỳ đầu tiên (ví dụ: 10)
-            T_add: Lượng cộng thêm vào sau mỗi chu kỳ (ví dụ: 10 -> 10, 20, 30...)
-            eta_min: Learning Rate tối thiểu.
-        """
-        self.T_0 = T_0
-        self.T_add = T_add
-        self.eta_min = eta_min
+# class ArithmeticCosineAnnealingLR(_LRScheduler):
+#     def __init__(self, optimizer, T_0, T_add, eta_min=0, last_epoch=-1):
+#         """
+#         Custom Scheduler: Cosine Annealing với chu kỳ tăng theo cấp số cộng.
+#         Args:
+#             T_0: Độ dài chu kỳ đầu tiên (ví dụ: 10)
+#             T_add: Lượng cộng thêm vào sau mỗi chu kỳ (ví dụ: 10 -> 10, 20, 30...)
+#             eta_min: Learning Rate tối thiểu.
+#         """
+#         self.T_0 = T_0
+#         self.T_add = T_add
+#         self.eta_min = eta_min
         
-        # Trạng thái nội bộ
-        self.T_i = T_0      # Độ dài chu kỳ hiện tại
-        self.T_cur = 0      # Epoch hiện tại trong chu kỳ
+#         # Trạng thái nội bộ
+#         self.T_i = T_0      # Độ dài chu kỳ hiện tại
+#         self.T_cur = 0      # Epoch hiện tại trong chu kỳ
         
-        super(ArithmeticCosineAnnealingLR, self).__init__(optimizer, last_epoch)
+#         super(ArithmeticCosineAnnealingLR, self).__init__(optimizer, last_epoch)
 
-    def get_lr(self):
-        return [self.eta_min + (base_lr - self.eta_min) *
-                (1 + math.cos(math.pi * self.T_cur / self.T_i)) / 2
-                for base_lr in self.base_lrs]
+#     def get_lr(self):
+#         return [self.eta_min + (base_lr - self.eta_min) *
+#                 (1 + math.cos(math.pi * self.T_cur / self.T_i)) / 2
+#                 for base_lr in self.base_lrs]
 
-    def step(self, epoch=None):
-        if epoch is None:
-            epoch = self.last_epoch + 1
-            self.T_cur += 1
-            # Khi hết chu kỳ hiện tại (T_i)
-            if self.T_cur >= self.T_i:
-                self.T_cur = 0          # Reset về đầu chu kỳ
-                self.T_i += self.T_add  # Tăng độ dài chu kỳ tiếp theo (Cấp số cộng)
+#     def step(self, epoch=None):
+#         if epoch is None:
+#             epoch = self.last_epoch + 1
+#             self.T_cur += 1
+#             # Khi hết chu kỳ hiện tại (T_i)
+#             if self.T_cur >= self.T_i:
+#                 self.T_cur = 0          # Reset về đầu chu kỳ
+#                 self.T_i += self.T_add  # Tăng độ dài chu kỳ tiếp theo (Cấp số cộng)
         
-        self.last_epoch = math.floor(epoch)
+#         self.last_epoch = math.floor(epoch)
         
-        # Cập nhật LR vào optimizer
-        for param_group, lr in zip(self.optimizer.param_groups, self.get_lr()):
-            param_group['lr'] = lr
+#         # Cập nhật LR vào optimizer
+#         for param_group, lr in zip(self.optimizer.param_groups, self.get_lr()):
+#             param_group['lr'] = lr
 def main(args):  
     print(f"\n[DEBUG TRAIN] args.loss bạn nhập từ bàn phím = {args.loss}")
     print("-" * 50)
