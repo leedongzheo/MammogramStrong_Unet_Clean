@@ -93,7 +93,11 @@ def main(args):
     
     # 1. Khởi tạo Model
     print(f"[INFO] Initializing Model...")
-    model = unet_pyramid_cbam_gate.PyramidCbamGateResNetUNet(in_channels=3, out_channels=1, deep_supervision=True)
+    model = unet_pyramid_cbam_gate.PyramidCbamGateResNetUNet(
+        in_channels=3, 
+        out_channels=1, 
+        deep_supervision=True,
+        dropout_prob=0.5)
     # 2. Khởi tạo Optimizer
     opt = optimizer_module.optimizer(model=model) 
     # --- [CHÍNH XÁC: KHỞI TẠO SEQUENTIAL LR TẠI ĐÂY] ---
