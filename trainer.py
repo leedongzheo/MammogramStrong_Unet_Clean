@@ -230,7 +230,7 @@ class Trainer:
             # --- [LOGIC SCHEDULER THÔNG MINH] ---
             if self.scheduler:
                 # Kiểm tra nếu là ReduceLROnPlateau -> Cần truyền metric
-                if isinstance(self.scheduler, torch.optim.lr_scheduler.ReduceLROnPlateau):
+                if isinstance(self.scheduler, ReduceLROnPlateau):
                     # Truyền Dice Mass vào để theo dõi (Cần set mode='max' ở main)
                     self.scheduler.step(val_res['dice_mass'])
                 else:
