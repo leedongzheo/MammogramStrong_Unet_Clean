@@ -256,12 +256,13 @@ def main(args):
             CYCLE_ADD = 10
             # fake_last_epoch = 7  # Mẹo: Giả vờ là đã chạy được 7 epoch -> Đang ở gần đáy chu kỳ
 
-            trainer.scheduler = ArithmeticCosineAnnealingLR(
+            trainer.scheduler = ReduceLROnPlateau(
                 trainer.optimizer, 
-                T_0=CYCLE_START,    # Chu kỳ đầu: 10 epoch
-                T_add=CYCLE_ADD,    # Cộng thêm 10 epoch sau mỗi lần reset
-                eta_min=1e-6, 
-                last_epoch=-1 
+                mode='max',      # Theo dõi Dice Mass (càng cao càng tốt)
+                factor=0.5,      # Giảm 1 nửa khi bão hòa
+                patience=10,     # Chờ 10 epoch
+                verbose=True,
+                min_lr=1e-6      # Đáy để kích hoạt reset
             )
             print(f"[CONFIG] Scheduler Reset! Mode: Arithmetic (10 -> 20 -> 30...)")
             
