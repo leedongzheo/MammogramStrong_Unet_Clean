@@ -268,3 +268,150 @@ class PyramidCbamGateResNetUNet(nn.Module):
             return [out, deep3, deep2, deep1] 
         # ---------------------------------------------------        
         return out
+class PyramidCbamGateResNet50UNet(nn.Module):
+    def __init__(self, in_channels=3, out_channels=1, backbone_name='resnet50', deep_supervision=True, dropout_prob=0.5):
+        super(PyramidCbamGateResNetUNet, self).__init__()
+        self.deep_supervision = deep_supervision
+        
+        # --- PYRAMID POOLING (Giữ nguyên) ---
+        self.pool_scale2 = nn.AvgPool2d(4, 4) 
+        self.pool_scale3 = nn.AvgPool2d(8, 8)
+        self.pool_scale4 = nn.AvgPool2d(16, 16)
+
+        # 1. LOAD BACKBONE RESNET50
+        # Weights mặc định
+        self.backbone = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V1)
+        
+        if in_channels != 3:
+            self.backbone.conv1 = nn.Conv2d(in_channels, 64, kernel_size=7, stride=2, padding=3, bias=False)
+
+        # Encoder Layers
+        self.encoder0 = nn.Sequential(self.backbone.conv1, self.backbone.bn1, self.backbone.relu)
+        self.encoder1 = self.backbone.maxpool
+        self.encoder2 = self.backbone.layer1 # Output: 256 channels (ResNet34 là 64)
+        self.encoder3 = self.backbone.layer2 # Output: 512 channels (ResNet34 là 128)
+        self.encoder4 = self.backbone.layer3 # Output: 1024 channels (ResNet34 là 256)
+        self.center   = self.backbone.layer4 # Output: 2048 channels (ResNet34 là 512)
+
+        # 2. PYRAMID FUSION (Sửa số kênh đầu ra để khớp Backbone mới)
+        self.scale2_conv = nn.Conv2d(in_channels, 256, kernel_size=3, padding=1)  # Khớp Layer 1 (256)
+        self.scale3_conv = nn.Conv2d(in_channels, 512, kernel_size=3, padding=1)  # Khớp Layer 2 (512)
+        self.scale4_conv = nn.Conv2d(in_channels, 1024, kernel_size=3, padding=1) # Khớp Layer 3 (1024)
+
+        # 3. CBAM (Sửa kênh)
+        self.cbam1 = CBAM(256) 
+        self.cbam2 = CBAM(512)
+        self.cbam3 = CBAM(1024)
+        self.cbam4 = CBAM(2048)
+
+        # 4. ATTENTION GATING (Sửa in_channels)
+        # AG1: Gate=Center(2048), X=Encoder4(1024) -> Inter=512
+        self.attgating1 = AttentionGatingBlock(in_channels_x=1024, in_channels_g=2048, inter_channels=512)
+        
+        # AG2: Gate=Up1(512), X=Encoder3(512) -> Inter=256
+        # Lưu ý: Up1 giảm kênh từ 2048 -> 512
+        self.attgating2 = AttentionGatingBlock(in_channels_x=512, in_channels_g=512, inter_channels=256)
+        
+        # AG3: Gate=Up2(256), X=Encoder2(256) -> Inter=128
+        self.attgating3 = AttentionGatingBlock(in_channels_x=256, in_channels_g=256, inter_channels=128)
+
+        # 5. DECODER PATH (Sửa ConvTranspose và DecoderBlock)
+        
+        # Up 1: Center(2048) -> 512
+        self.up1 = nn.ConvTranspose2d(2048, 512, kernel_size=2, stride=2)
+        # Cat: Up1(512) + Attn1(1024) = 1536 -> Out 512
+        self.dec1 = DecoderBlock(512 + 1024, 512, dropout_prob=dropout_prob)
+        
+        # Up 2: Dec1(512) -> 256
+        self.up2 = nn.ConvTranspose2d(512, 256, kernel_size=2, stride=2)
+        # Cat: Up2(256) + Attn2(512) = 768 -> Out 256
+        self.dec2 = DecoderBlock(256 + 512, 256, dropout_prob=dropout_prob)
+        
+        # Up 3: Dec2(256) -> 128
+        self.up3 = nn.ConvTranspose2d(256, 128, kernel_size=2, stride=2)
+        # Cat: Up3(128) + Attn3(256) = 384 -> Out 128
+        self.dec3 = DecoderBlock(128 + 256, 128, dropout_prob=dropout_prob)
+        
+        # Up 4: Dec3(128) -> 64
+        self.up4 = nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2)
+        # Cat: Up4(64) + Encoder0(64) = 128 -> Out 64
+        self.dec4 = DecoderBlock(64 + 64, 64, dropout_prob=dropout_prob)
+
+        # Final
+        self.final = nn.Conv2d(64, out_channels, kernel_size=1)
+
+        # Deep Supervision Heads (Sửa kênh đầu vào)
+        if self.deep_supervision:
+            # d1 (512), d2 (256), d3 (128)
+            self.seg_head_d1 = nn.Conv2d(512, out_channels, kernel_size=1)
+            self.seg_head_d2 = nn.Conv2d(256, out_channels, kernel_size=1)
+            self.seg_head_d3 = nn.Conv2d(128, out_channels, kernel_size=1)
+            
+    # --- PHẦN FORWARD GIỮ NGUYÊN (KHÔNG CẦN SỬA) ---
+    def forward(self, x):
+        # ... (Copy nguyên hàm forward cũ vào đây) ...
+        # Logic forward không thay đổi vì ta chỉ thay đổi kích thước kênh bên trong __init__
+        # Chỉ cần đảm bảo copy đủ code forward từ bài cũ
+        return super().forward(x) if hasattr(super(), 'forward') else self._forward_impl(x)
+
+    # Copy hàm forward từ code cũ của bạn vào đây và đổi tên thành _forward_impl hoặc forward
+    def forward(self, x):
+        # --- PYRAMID INPUTS ---
+        x_scale2 = self.pool_scale2(x)
+        x_scale3 = self.pool_scale3(x)
+        x_scale4 = self.pool_scale4(x)
+
+        # --- ENCODER ---
+        e0 = self.encoder0(x)
+        e0_pool = self.encoder1(e0)
+        
+        feat_scale2 = self.scale2_conv(x_scale2)
+        e1 = self.encoder2(e0_pool) 
+        e1 = e1 + feat_scale2
+        e1 = self.cbam1(e1)
+
+        feat_scale3 = self.scale3_conv(x_scale3)
+        e2 = self.encoder3(e1) 
+        e2 = e2 + feat_scale3
+        e2 = self.cbam2(e2)
+
+        feat_scale4 = self.scale4_conv(x_scale4)
+        e3 = self.encoder4(e2) 
+        e3 = e3 + feat_scale4
+        e3 = self.cbam3(e3)
+
+        center = self.center(e3)
+        center = self.cbam4(center)
+
+        # --- DECODER ---
+        d1 = self.up1(center)
+        attn1 = self.attgating1(x=e3, g=center)
+        d1 = torch.cat([d1, attn1], dim=1)
+        d1 = self.dec1(d1)
+
+        d2 = self.up2(d1)
+        attn2 = self.attgating2(x=e2, g=d1)
+        d2 = torch.cat([d2, attn2], dim=1)
+        d2 = self.dec2(d2)
+
+        d3 = self.up3(d2)
+        attn3 = self.attgating3(x=e1, g=d2)
+        d3 = torch.cat([d3, attn3], dim=1)
+        d3 = self.dec3(d3)
+
+        d4 = self.up4(d3)
+        if d4.shape[2:] != e0.shape[2:]:
+             d4 = F.interpolate(d4, size=e0.shape[2:])
+        d4 = torch.cat([d4, e0], dim=1)
+        d4 = self.dec4(d4)
+
+        out = self.final(d4)
+        out = F.interpolate(out, scale_factor=2, mode='bilinear', align_corners=True)
+
+        if self.deep_supervision and self.training:
+            deep1 = self.seg_head_d1(d1)
+            deep2 = self.seg_head_d2(d2)
+            deep3 = self.seg_head_d3(d3)
+            return [out, deep3, deep2, deep1]
+            
+        return out
