@@ -215,7 +215,9 @@ class Trainer:
         
         start_time = time.time()
         print(f"[INFO] Starting training from epoch {self.start_epoch + 1}...")
-
+        MIN_LR_THRESHOLD = 1e-6  
+        RESET_LR_VALUE = 1e-4
+        MIN_LR = 1e-6
         for epoch in range(self.start_epoch, self.num_epochs):
             self.current_epoch = epoch 
             
@@ -242,6 +244,30 @@ class Trainer:
                 current_lr = self.scheduler.get_last_lr()[0]
             except:
                 current_lr = self.optimizer.param_groups[0]['lr']
+            # Kiểm tra: Đang dùng ReduceLR VÀ LR đã chạm đáy
+            if self.scheduler and isinstance(self.scheduler, ReduceLROnPlateau):
+                if current_lr <= MIN_LR_THRESHOLD:
+                    print(f"\n[CYCLIC STRATEGY] 📉 LR hit bottom ({current_lr:.2e})! Resetting cycle...")
+                    
+                    # A. Reset LR trong Optimizer lên lại đỉnh (1e-4)
+                    for param_group in self.optimizer.param_groups:
+                        param_group['lr'] = RESET_LR_VALUE
+                    print(f"[CYCLIC STRATEGY] 🚀 Learning Rate reset to {RESET_LR_VALUE}")
+                    old_patience = self.scheduler.patience
+                    old_factor = self.scheduler.factor
+                    old_mode = self.scheduler.mode # 'max'
+                    # B. Reset Scheduler (Tạo mới lại chính nó)
+                    # Lý do: Để reset bộ đếm patience và best metric về trạng thái ban đầu
+                    # Lưu ý: Các tham số này phải khớp với cấu hình trong main()
+                    self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+                        self.optimizer, 
+                        mode = old_mode, 
+                        factor = old_factor,   # Dùng lại factor cũ (0.5)
+                        patience = old_patience, # Dùng lại patience cũ (10)
+                        verbose = True,
+                        min_lr = MIN_LR
+                    )
+                    print(f"[CYCLIC STRATEGY] 🔄 Scheduler re-initialized! Starting new reduction cycle.")
             # current_lr = self.scheduler.get_last_lr()[0] if self.scheduler else self.optimizer.param_groups[0]['lr']
             print(f"Epoch {epoch+1}/{self.num_epochs} | LR: {current_lr:.2e}")
             # In kết quả chi tiết
