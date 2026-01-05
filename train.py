@@ -256,8 +256,7 @@ def main(args):
             new_lr = 1e-5
             for param_group in trainer.optimizer.param_groups:
                 param_group['lr'] = new_lr
-                print(f"[SWITCH] Switching logic from SequentialLR -> ReduceLROnPlateau for Final Stage with LR forced to {new_lr}")
-            print(f"[CONFIG] Optimizer LR forced to: {new_lr}")
+            print(f"[SWITCH] Switching logic from SequentialLR -> ReduceLROnPlateau for Final Stage with LR forced to {new_lr}")
             
             # # # Cập nhật "trần" cho Scheduler để các chu kỳ sau không vượt quá 1e-5
             # if hasattr(trainer.scheduler, 'base_lrs'):
