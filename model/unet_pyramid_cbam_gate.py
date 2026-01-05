@@ -270,7 +270,7 @@ class PyramidCbamGateResNetUNet(nn.Module):
         return out
 class PyramidCbamGateResNet50UNet(nn.Module):
     def __init__(self, in_channels=3, out_channels=1, backbone_name='resnet50', deep_supervision=True, dropout_prob=0.5):
-        super(PyramidCbamGateResNetUNet, self).__init__()
+        super(PyramidCbamGateResNet50UNet, self).__init__()
         self.deep_supervision = deep_supervision
         
         # --- PYRAMID POOLING (Giữ nguyên) ---
