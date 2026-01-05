@@ -138,11 +138,13 @@ def main(args):
     # 3. KHỞI TẠO LOSS (Thay thế hàm get_loss_function)
     # Logic: Nếu chọn FocalTversky thì lấy biến toàn cục, còn lại thì khởi tạo class
     criterion_init = get_loss_instance(args.loss)
-
+    initial_scheduler = ReduceLROnPlateau(
+        opt, mode='max', factor=0.5, patience=10, verbose=True, min_lr=1e-6
+    )
     # 4. Khởi tạo Trainer
     # Lưu ý: Trainer lưu reference tới criterion_init. 
     # Nếu criterion_init là _focal_tversky_loss, mọi thay đổi trên _focal_tversky_loss sẽ tự động cập nhật trong Trainer.
-    trainer = Trainer(model=model, optimizer=opt, criterion=criterion_init, patience=10, device=DEVICE)
+    trainer = Trainer(model=model, optimizer=opt, criterion=criterion_init, scheduler=initial_scheduler, patience=10, device=DEVICE)
 
     if args.mode == "train":
         if not os.path.exists(BASE_OUTPUT):
