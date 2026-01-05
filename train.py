@@ -93,7 +93,7 @@ def main(args):
     
     # 1. Khởi tạo Model
     print(f"[INFO] Initializing Model...")
-    model = unet_pyramid_cbam_gate.PyramidCbamGateResNetUNet(
+    model = unet_pyramid_cbam_gate.PyramidCbamGateResNet50UNet(
         in_channels=3, 
         out_channels=1, 
         deep_supervision=True,
