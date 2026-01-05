@@ -263,7 +263,7 @@ class Trainer:
                         self.optimizer, 
                         mode = old_mode, 
                         factor = old_factor,   # Dùng lại factor cũ (0.5)
-                        patience = old_patience, # Dùng lại patience cũ (10)
+                        patience = 5, # Dùng lại patience cũ (10)
                         # verbose = True,
                         min_lr = MIN_LR
                     )
