@@ -69,44 +69,6 @@ def set_grad_status(model, freeze=True):
         print(f"[INFO] {name} is now {status}")
     else:
         print("[WARNING] Could not find 'backbone' or 'encoder' to freeze!")
-# class ArithmeticCosineAnnealingLR(_LRScheduler):
-#     def __init__(self, optimizer, T_0, T_add, eta_min=0, last_epoch=-1):
-#         """
-#         Custom Scheduler: Cosine Annealing với chu kỳ tăng theo cấp số cộng.
-#         Args:
-#             T_0: Độ dài chu kỳ đầu tiên (ví dụ: 10)
-#             T_add: Lượng cộng thêm vào sau mỗi chu kỳ (ví dụ: 10 -> 10, 20, 30...)
-#             eta_min: Learning Rate tối thiểu.
-#         """
-#         self.T_0 = T_0
-#         self.T_add = T_add
-#         self.eta_min = eta_min
-        
-#         # Trạng thái nội bộ
-#         self.T_i = T_0      # Độ dài chu kỳ hiện tại
-#         self.T_cur = 0      # Epoch hiện tại trong chu kỳ
-        
-#         super(ArithmeticCosineAnnealingLR, self).__init__(optimizer, last_epoch)
-
-#     def get_lr(self):
-#         return [self.eta_min + (base_lr - self.eta_min) *
-#                 (1 + math.cos(math.pi * self.T_cur / self.T_i)) / 2
-#                 for base_lr in self.base_lrs]
-
-#     def step(self, epoch=None):
-#         if epoch is None:
-#             epoch = self.last_epoch + 1
-#             self.T_cur += 1
-#             # Khi hết chu kỳ hiện tại (T_i)
-#             if self.T_cur >= self.T_i:
-#                 self.T_cur = 0          # Reset về đầu chu kỳ
-#                 self.T_i += self.T_add  # Tăng độ dài chu kỳ tiếp theo (Cấp số cộng)
-        
-#         self.last_epoch = math.floor(epoch)
-        
-#         # Cập nhật LR vào optimizer
-#         for param_group, lr in zip(self.optimizer.param_groups, self.get_lr()):
-#             param_group['lr'] = lr
 def main(args):  
     print(f"\n[DEBUG TRAIN] args.loss bạn nhập từ bàn phím = {args.loss}")
     print("-" * 50)
@@ -169,75 +131,75 @@ def main(args):
             mode_stage1 = 'none'
             mode_stage23 = 'none'
             print(f"[INFO] Augmentation: OFF (All Stages: none)")
-        # if args.augment and args.warmup > 0:
+        if args.augment and args.warmup > 0:
 
-        #     # =========================================================
-        #     # GIAI ĐOẠN 1: WARM-UP
-        #     # =========================================================
-        #     print("\n" + "="*40)
-        #     print(" GIAI ĐOẠN 1: WARM-UP (Freeze Backbone) (10 Epochs)")
-        #     print(f" Config: Light Augment | Loss: {args.loss}")
-        #     print("="*40)
+            # =========================================================
+            # GIAI ĐOẠN 1: WARM-UP
+            # =========================================================
+            print("\n" + "="*40)
+            print(" GIAI ĐOẠN 1: WARM-UP (Freeze Backbone) (10 Epochs)")
+            print(f" Config: Light Augment | Loss: {args.loss}")
+            print("="*40)
 
-        #     trainLoader_weak, validLoader, _ = get_dataloaders(aug_mode=mode_stage1)
+            trainLoader_weak, validLoader, _ = get_dataloaders(aug_mode=mode_stage1)
             
-        #     # Đảm bảo params đúng cho GD1 (nếu dùng Focal)
-        #     if args.loss == "FocalTversky_loss":
-        #         _focal_tversky_global.update_params(alpha=0.7, beta=0.3, gamma=1.33)
-        #     # --- [THÊM] ĐÓNG BĂNG BACKBONE ---
-        #     set_grad_status(model, freeze=True)
-        #     trainer.num_epochs = args.warmup
-        #     trainer.patience = 999      
-        #     trainer.train(trainLoader_weak, validLoader, resume_path=None)
-        #     # --- [THÊM] MỞ BĂNG BACKBONE (Để chuẩn bị cho GD2) ---
-        #     set_grad_status(model, freeze=False)
-        #     resume_checkpoint = "last_model.pth" 
-        # else:
-        #     print("\n[INFO] Skipping Stage 1 (Warm-up). Starting directly with Main Training.")
-        #     # Đảm bảo chắc chắn là đã Unfreeze nếu không chạy Stage 1
-        #     set_grad_status(model, freeze=False)
-        #     resume_checkpoint = None
-        # =========================================================
-        # GIAI ĐOẠN 2: INTERMEDIATE TUNING (Chỉ FocalTversky)
-        # =========================================================
-        # if args.loss == "FocalTversky_loss":
-        #     print("\n" + "="*40)
-        #     print(" GIAI ĐOẠN 2: INTERMEDIATE TUNING (Full Finetune)")
-        #     print(" Config: Heavy Augment | Alpha=0.7")
-        #     print("="*40)
-        #     # Đảm bảo backbone đã được mở khóa (double check)
-        #     set_grad_status(model, freeze=False)
-        #     trainLoader_strong, validLoader, _ = get_dataloaders(aug_mode=mode_stage23)
+            # Đảm bảo params đúng cho GD1 (nếu dùng Focal)
+            if args.loss == "FocalTversky_loss":
+                _focal_tversky_global.update_params(alpha=0.7, beta=0.3, gamma=1.33)
+            # --- [THÊM] ĐÓNG BĂNG BACKBONE ---
+            set_grad_status(model, freeze=True)
+            trainer.num_epochs = args.warmup
+            trainer.patience = 999      
+            trainer.train(trainLoader_weak, validLoader, resume_path=None)
+            # --- [THÊM] MỞ BĂNG BACKBONE (Để chuẩn bị cho GD2) ---
+            set_grad_status(model, freeze=False)
+            resume_checkpoint = "last_model.pth" 
+        else:
+            print("\n[INFO] Skipping Stage 1 (Warm-up). Starting directly with Main Training.")
+            # Đảm bảo chắc chắn là đã Unfreeze nếu không chạy Stage 1
+            set_grad_status(model, freeze=False)
+            resume_checkpoint = None
+        =========================================================
+        GIAI ĐOẠN 2: INTERMEDIATE TUNING (Chỉ FocalTversky)
+        =========================================================
+        if args.loss == "FocalTversky_loss":
+            print("\n" + "="*40)
+            print(" GIAI ĐOẠN 2: INTERMEDIATE TUNING (Full Finetune)")
+            print(" Config: Heavy Augment | Alpha=0.7")
+            print("="*40)
+            # Đảm bảo backbone đã được mở khóa (double check)
+            set_grad_status(model, freeze=False)
+            trainLoader_strong, validLoader, _ = get_dataloaders(aug_mode=mode_stage23)
             
-        #     # Update Params (Thực tế GD2 vẫn dùng 0.7, nhưng gọi lại cho chắc chắn hoặc nếu bạn muốn chỉnh khác)
-        #     # KHÔNG CẦN gán trainer.criterion = ... vì nó đã trỏ cùng 1 vùng nhớ
-        #     _focal_tversky_global.update_params(alpha=0.7, beta=0.3, gamma=1.33)
+            # Update Params (Thực tế GD2 vẫn dùng 0.7, nhưng gọi lại cho chắc chắn hoặc nếu bạn muốn chỉnh khác)
+            # KHÔNG CẦN gán trainer.criterion = ... vì nó đã trỏ cùng 1 vùng nhớ
+            _focal_tversky_global.update_params(alpha=0.7, beta=0.3, gamma=1.33)
             
-        #     trainer.num_epochs = 150 
-        #     trainer.patience = 10   
-        #     trainer.early_stop_counter = 0
+            trainer.num_epochs = 150 
+            trainer.patience = 10   
+            trainer.early_stop_counter = 0
             
-        #     trainer.train(trainLoader_strong, validLoader, resume_path=resume_checkpoint)
-        #     resume_checkpoint = "best_dice_mass_model.pth"
-        #     print(f"[TRANSITION] Stage 2 Finished. Best model '{resume_checkpoint}' will be loaded for Stage 3.")
-        #     if os.path.exists(resume_checkpoint):
-        #         backup_name = "stage2_final_best.pth" # Tên file backup
-        #         shutil.copy(resume_checkpoint, backup_name)
-        #         print(f"[BACKUP] Safe copy created: {resume_checkpoint} -> {backup_name}")
-        # # ----------------------------------------
-        # else:
-        #     print("\n[INFO] Skipping Stage 2 (Only for FocalTversky).")
+            trainer.train(trainLoader_strong, validLoader, resume_path=resume_checkpoint)
+            resume_checkpoint = "best_dice_mass_model.pth"
+            print(f"[TRANSITION] Stage 2 Finished. Best model '{resume_checkpoint}' will be loaded for Stage 3.")
+            if os.path.exists(resume_checkpoint):
+                backup_name = "stage2_final_best.pth" # Tên file backup
+                shutil.copy(resume_checkpoint, backup_name)
+                print(f"[BACKUP] Safe copy created: {resume_checkpoint} -> {backup_name}")
+        # ----------------------------------------
+        else:
+            print("\n[INFO] Skipping Stage 2 (Only for FocalTversky).")
 
         # =========================================================
         # GIAI ĐOẠN 3: FINAL TRAINING
         # =========================================================
-        print("\n[INFO] MANUAL RESUME: Skipping Stage 2.")
-        resume_checkpoint = "best_dice_mass_model.pth"
-        if os.path.exists(resume_checkpoint):
-             print(f"[INFO] Found Stage 2 Checkpoint: {resume_checkpoint}. Proceeding to Stage 3.")
-        else:
-             print(f"[ERROR] Checkpoint {resume_checkpoint} not found! Check file name.")
-             return # Dừng chương trình nếu không thấy file
+        # print("\n[INFO] MANUAL RESUME: Skipping Stage 2.")
+        # resume_checkpoint = "best_dice_mass_model.pth"
+        # if os.path.exists(resume_checkpoint):
+        #      print(f"[INFO] Found Stage 2 Checkpoint: {resume_checkpoint}. Proceeding to Stage 3.")
+        # else:
+        #      print(f"[ERROR] Checkpoint {resume_checkpoint} not found! Check file name.")
+        #      return # Dừng chương trình nếu không thấy file
         print("\n" + "="*40)
         print(" GIAI ĐOẠN 3: FINAL TRAINING")
         # [BƯỚC 1: QUAN TRỌNG] Load Checkpoint thủ công TRƯỚC KHI chỉnh sửa bất cứ thứ gì
@@ -284,16 +246,7 @@ def main(args):
                 # verbose=True,
                 min_lr=1e-6      # Đáy để kích hoạt reset
             )
-            print(f"[CONFIG] Scheduler Reset! Mode: Arithmetic (10 -> 20 -> 30...)")
-            
-            # target_high_lr = 1e-4
-            # if hasattr(trainer.scheduler, 'base_lrs'):
-            #      trainer.scheduler.base_lrs = [target_high_lr] * len(trainer.optimizer.param_groups)
-
-            # # [QUAN TRỌNG] Reset scheduler về step 0 để bắt đầu chu kỳ mới mượt mà
-            # trainer.scheduler.last_epoch = -1
-            # print(f"[CONFIG] Scheduler Reset! Current LR ~{new_lr}. Next Restart Peak: {target_high_lr}")
-            
+            print(f"[CONFIG] Scheduler Reset! Mode: Arithmetic (10 -> 20 -> 30...)")            
         else:
             # >> CHIẾN LƯỢC 2 GIAI ĐOẠN (Loss khác) <<
             print(f" Config: Heavy Augment | Loss: {args.loss} | KEEP LR")
@@ -447,17 +400,6 @@ def main(args):
             # --- GỌI HÀM VỚI THAM SỐ MỚI ---
             print(f"[INFO] Exporting metrics for {split_name}...")
             export_evaluate(trainer, split_name=split_name)
-    # elif args.mode == "evaluate":
-    #     print(f"[INFO] Mode: EVALUATING")
-    #     _, validLoader, _ = get_dataloaders(aug_mode='none')
-    #     visual_folder = os.path.join(BASE_OUTPUT, "prediction_images")
-    #     trainer.evaluate(
-    #         test_loader=validLoader, 
-    #         checkpoint_path=args.checkpoint,
-    #         save_visuals=True,          # <--- Bật chế độ lưu ảnh
-    #         output_dir=visual_folder    # <--- Truyền đường dẫn lưu
-    #     )
-    #     export_evaluate(trainer)
 
 if __name__ == "__main__":
     args = get_args()
