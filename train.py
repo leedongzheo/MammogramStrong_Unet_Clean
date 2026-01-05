@@ -169,68 +169,75 @@ def main(args):
             mode_stage1 = 'none'
             mode_stage23 = 'none'
             print(f"[INFO] Augmentation: OFF (All Stages: none)")
-        if args.augment and args.warmup > 0:
+        # if args.augment and args.warmup > 0:
 
-            # =========================================================
-            # GIAI ĐOẠN 1: WARM-UP
-            # =========================================================
-            print("\n" + "="*40)
-            print(" GIAI ĐOẠN 1: WARM-UP (Freeze Backbone) (10 Epochs)")
-            print(f" Config: Light Augment | Loss: {args.loss}")
-            print("="*40)
+        #     # =========================================================
+        #     # GIAI ĐOẠN 1: WARM-UP
+        #     # =========================================================
+        #     print("\n" + "="*40)
+        #     print(" GIAI ĐOẠN 1: WARM-UP (Freeze Backbone) (10 Epochs)")
+        #     print(f" Config: Light Augment | Loss: {args.loss}")
+        #     print("="*40)
 
-            trainLoader_weak, validLoader, _ = get_dataloaders(aug_mode=mode_stage1)
+        #     trainLoader_weak, validLoader, _ = get_dataloaders(aug_mode=mode_stage1)
             
-            # Đảm bảo params đúng cho GD1 (nếu dùng Focal)
-            if args.loss == "FocalTversky_loss":
-                _focal_tversky_global.update_params(alpha=0.7, beta=0.3, gamma=1.33)
-            # --- [THÊM] ĐÓNG BĂNG BACKBONE ---
-            set_grad_status(model, freeze=True)
-            trainer.num_epochs = args.warmup
-            trainer.patience = 999      
-            trainer.train(trainLoader_weak, validLoader, resume_path=None)
-            # --- [THÊM] MỞ BĂNG BACKBONE (Để chuẩn bị cho GD2) ---
-            set_grad_status(model, freeze=False)
-            resume_checkpoint = "last_model.pth" 
-        else:
-            print("\n[INFO] Skipping Stage 1 (Warm-up). Starting directly with Main Training.")
-            # Đảm bảo chắc chắn là đã Unfreeze nếu không chạy Stage 1
-            set_grad_status(model, freeze=False)
-            resume_checkpoint = None
+        #     # Đảm bảo params đúng cho GD1 (nếu dùng Focal)
+        #     if args.loss == "FocalTversky_loss":
+        #         _focal_tversky_global.update_params(alpha=0.7, beta=0.3, gamma=1.33)
+        #     # --- [THÊM] ĐÓNG BĂNG BACKBONE ---
+        #     set_grad_status(model, freeze=True)
+        #     trainer.num_epochs = args.warmup
+        #     trainer.patience = 999      
+        #     trainer.train(trainLoader_weak, validLoader, resume_path=None)
+        #     # --- [THÊM] MỞ BĂNG BACKBONE (Để chuẩn bị cho GD2) ---
+        #     set_grad_status(model, freeze=False)
+        #     resume_checkpoint = "last_model.pth" 
+        # else:
+        #     print("\n[INFO] Skipping Stage 1 (Warm-up). Starting directly with Main Training.")
+        #     # Đảm bảo chắc chắn là đã Unfreeze nếu không chạy Stage 1
+        #     set_grad_status(model, freeze=False)
+        #     resume_checkpoint = None
         # =========================================================
         # GIAI ĐOẠN 2: INTERMEDIATE TUNING (Chỉ FocalTversky)
         # =========================================================
-        if args.loss == "FocalTversky_loss":
-            print("\n" + "="*40)
-            print(" GIAI ĐOẠN 2: INTERMEDIATE TUNING (Full Finetune)")
-            print(" Config: Heavy Augment | Alpha=0.7")
-            print("="*40)
-            # Đảm bảo backbone đã được mở khóa (double check)
-            set_grad_status(model, freeze=False)
-            trainLoader_strong, validLoader, _ = get_dataloaders(aug_mode=mode_stage23)
+        # if args.loss == "FocalTversky_loss":
+        #     print("\n" + "="*40)
+        #     print(" GIAI ĐOẠN 2: INTERMEDIATE TUNING (Full Finetune)")
+        #     print(" Config: Heavy Augment | Alpha=0.7")
+        #     print("="*40)
+        #     # Đảm bảo backbone đã được mở khóa (double check)
+        #     set_grad_status(model, freeze=False)
+        #     trainLoader_strong, validLoader, _ = get_dataloaders(aug_mode=mode_stage23)
             
-            # Update Params (Thực tế GD2 vẫn dùng 0.7, nhưng gọi lại cho chắc chắn hoặc nếu bạn muốn chỉnh khác)
-            # KHÔNG CẦN gán trainer.criterion = ... vì nó đã trỏ cùng 1 vùng nhớ
-            _focal_tversky_global.update_params(alpha=0.7, beta=0.3, gamma=1.33)
+        #     # Update Params (Thực tế GD2 vẫn dùng 0.7, nhưng gọi lại cho chắc chắn hoặc nếu bạn muốn chỉnh khác)
+        #     # KHÔNG CẦN gán trainer.criterion = ... vì nó đã trỏ cùng 1 vùng nhớ
+        #     _focal_tversky_global.update_params(alpha=0.7, beta=0.3, gamma=1.33)
             
-            trainer.num_epochs = 150 
-            trainer.patience = 10   
-            trainer.early_stop_counter = 0
+        #     trainer.num_epochs = 150 
+        #     trainer.patience = 10   
+        #     trainer.early_stop_counter = 0
             
-            trainer.train(trainLoader_strong, validLoader, resume_path=resume_checkpoint)
-            resume_checkpoint = "best_dice_mass_model.pth"
-            print(f"[TRANSITION] Stage 2 Finished. Best model '{resume_checkpoint}' will be loaded for Stage 3.")
-            if os.path.exists(resume_checkpoint):
-                backup_name = "stage2_final_best.pth" # Tên file backup
-                shutil.copy(resume_checkpoint, backup_name)
-                print(f"[BACKUP] Safe copy created: {resume_checkpoint} -> {backup_name}")
-        # ----------------------------------------
-        else:
-            print("\n[INFO] Skipping Stage 2 (Only for FocalTversky).")
+        #     trainer.train(trainLoader_strong, validLoader, resume_path=resume_checkpoint)
+        #     resume_checkpoint = "best_dice_mass_model.pth"
+        #     print(f"[TRANSITION] Stage 2 Finished. Best model '{resume_checkpoint}' will be loaded for Stage 3.")
+        #     if os.path.exists(resume_checkpoint):
+        #         backup_name = "stage2_final_best.pth" # Tên file backup
+        #         shutil.copy(resume_checkpoint, backup_name)
+        #         print(f"[BACKUP] Safe copy created: {resume_checkpoint} -> {backup_name}")
+        # # ----------------------------------------
+        # else:
+        #     print("\n[INFO] Skipping Stage 2 (Only for FocalTversky).")
 
         # =========================================================
         # GIAI ĐOẠN 3: FINAL TRAINING
         # =========================================================
+        print("\n[INFO] MANUAL RESUME: Skipping Stage 2.")
+        resume_checkpoint = "best_dice_mass_model.pth"
+        if os.path.exists(resume_checkpoint):
+             print(f"[INFO] Found Stage 2 Checkpoint: {resume_checkpoint}. Proceeding to Stage 3.")
+        else:
+             print(f"[ERROR] Checkpoint {resume_checkpoint} not found! Check file name.")
+             return # Dừng chương trình nếu không thấy file
         print("\n" + "="*40)
         print(" GIAI ĐOẠN 3: FINAL TRAINING")
         # [BƯỚC 1: QUAN TRỌNG] Load Checkpoint thủ công TRƯỚC KHI chỉnh sửa bất cứ thứ gì
