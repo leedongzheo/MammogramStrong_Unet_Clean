@@ -112,9 +112,7 @@ def main(args):
         encoder_weights="imagenet",
         in_channels=3,
         classes=1,
-        encoder_params={
-        "drop_path_rate": 0.2  # Thay bằng tham số chuẩn của timm
-    }
+        drop_path_rate=0.5
 )
     # 2. Khởi tạo Optimizer
     opt = optimizer_module.optimizer(model=model) 
