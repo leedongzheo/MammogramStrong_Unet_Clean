@@ -264,7 +264,7 @@ class Trainer:
                         mode = old_mode, 
                         factor = old_factor,   # Dùng lại factor cũ (0.5)
                         patience = old_patience, # Dùng lại patience cũ (10)
-                        verbose = True,
+                        # verbose = True,
                         min_lr = MIN_LR
                     )
                     print(f"[CYCLIC STRATEGY] 🔄 Scheduler re-initialized! Starting new reduction cycle.")
