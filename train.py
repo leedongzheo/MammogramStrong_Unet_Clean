@@ -159,9 +159,9 @@ def main(args):
             # Đảm bảo chắc chắn là đã Unfreeze nếu không chạy Stage 1
             set_grad_status(model, freeze=False)
             resume_checkpoint = None
-        =========================================================
-        GIAI ĐOẠN 2: INTERMEDIATE TUNING (Chỉ FocalTversky)
-        =========================================================
+        # =========================================================
+        # GIAI ĐOẠN 2: INTERMEDIATE TUNING (Chỉ FocalTversky)
+        # =========================================================
         if args.loss == "FocalTversky_loss":
             print("\n" + "="*40)
             print(" GIAI ĐOẠN 2: INTERMEDIATE TUNING (Full Finetune)")
