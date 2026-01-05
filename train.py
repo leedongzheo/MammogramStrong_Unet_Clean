@@ -220,7 +220,7 @@ def main(args):
             trainer.scheduler = CosineAnnealingWarmRestarts(
                 trainer.optimizer, 
                 T_0=CYCLE_LEN, 
-                T_mult=1, 
+                T_mult=2, 
                 eta_min=1e-6, 
                 last_epoch=-1  # <--- Không cần hack nữa vì Epoch 37 tự khớp rồi
             )
