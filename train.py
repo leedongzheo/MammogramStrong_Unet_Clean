@@ -98,14 +98,21 @@ def main(args):
     #     out_channels=1, 
     #     deep_supervision=True,
     #     dropout_prob=0.5)
-    model = smp.DeepLabV3Plus(
-        # encoder_name="tu-resnest50d", # ResNeSt rất mạnh cho y tế, hoặc dùng efficientnet-b3
-        # encoder_name = "efficientnet-b4"
-        encoder_name="tu-resnest50d",
-        encoder_weights="imagenet",
-        in_channels=3,
-        classes=1,
-        drop_path_rate=0.2
+    # model = smp.DeepLabV3Plus(
+    #         # encoder_name="tu-resnest50d", # ResNeSt rất mạnh cho y tế, hoặc dùng efficientnet-b3
+    #         # encoder_name = "efficientnet-b4"
+    #         encoder_name="tu-resnest50d",
+    #         encoder_weights="imagenet",
+    #         in_channels=3,
+    #         classes=1,
+    #         drop_path_rate=0.2
+    # )
+    model = smp.UnetPlusPlus(
+    encoder_name="tu-resnest50d", 
+    encoder_weights="imagenet",
+    in_channels=3,
+    classes=1,
+    dropout=0.5
 )
     # 2. Khởi tạo Optimizer
     opt = optimizer_module.optimizer(model=model) 
