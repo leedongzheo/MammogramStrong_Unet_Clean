@@ -162,12 +162,13 @@ def main(args):
             # KHÔNG CẦN gán trainer.criterion = ... vì nó đã trỏ cùng 1 vùng nhớ
             _focal_tversky_global.update_params(alpha=0.7, beta=0.3, gamma=1.33)
             
-            trainer.num_epochs = 60 
+            trainer.num_epochs = 150 
             trainer.patience = 10   
             trainer.early_stop_counter = 0
-
+            
             trainer.train(trainLoader_strong, validLoader, resume_path=resume_checkpoint)
-            resume_checkpoint = "last_model.pth"
+            resume_checkpoint = "best_dice_mass_model.pth"
+            print(f"[TRANSITION] Stage 2 Finished. Best model '{resume_checkpoint}' will be loaded for Stage 3.")
         else:
             print("\n[INFO] Skipping Stage 2 (Only for FocalTversky).")
 
