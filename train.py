@@ -134,17 +134,28 @@ def main(args):
     model = unet_pyramid_cbam_gate.PyramidCbamGateResNetUNet(in_channels=3, out_channels=1, deep_supervision=True)
     # 2. Khởi tạo Optimizer
     opt = optimizer_module.optimizer(model=model) 
-
+    # --- [CHÍNH XÁC: KHỞI TẠO SEQUENTIAL LR TẠI ĐÂY] ---
+    warmup_epochs = args.warmup if args.warmup > 0 else 10
+    scheduler_warmup = LinearLR(
+        opt, start_factor=0.01, end_factor=1.0, total_iters=warmup_epochs
+    )
+    # B. Main Cosine
+    scheduler_cosine = CosineAnnealingWarmRestarts(
+        opt, T_0=10, T_mult=2, eta_min=1e-6
+    )
+    # C. Hợp thể (Dùng cho Giai đoạn 1 & 2)
+    scheduler_initial = SequentialLR(
+        opt, 
+        schedulers=[scheduler_warmup, scheduler_cosine], 
+        milestones=[warmup_epochs] 
+    )
     # 3. KHỞI TẠO LOSS (Thay thế hàm get_loss_function)
     # Logic: Nếu chọn FocalTversky thì lấy biến toàn cục, còn lại thì khởi tạo class
     criterion_init = get_loss_instance(args.loss)
-    initial_scheduler = ReduceLROnPlateau(
-        opt, mode='max', factor=0.5, patience=10, verbose=True, min_lr=1e-6
-    )
     # 4. Khởi tạo Trainer
     # Lưu ý: Trainer lưu reference tới criterion_init. 
     # Nếu criterion_init là _focal_tversky_loss, mọi thay đổi trên _focal_tversky_loss sẽ tự động cập nhật trong Trainer.
-    trainer = Trainer(model=model, optimizer=opt, criterion=criterion_init, scheduler=initial_scheduler, patience=10, device=DEVICE)
+    trainer = Trainer(model=model, optimizer=opt, criterion=criterion_init, scheduler=scheduler_initial, patience=10, device=DEVICE)
 
     if args.mode == "train":
         if not os.path.exists(BASE_OUTPUT):
@@ -245,6 +256,7 @@ def main(args):
             new_lr = 1e-5
             for param_group in trainer.optimizer.param_groups:
                 param_group['lr'] = new_lr
+                print(f"[SWITCH] Switching logic from SequentialLR -> ReduceLROnPlateau for Final Stage with LR forced to {new_lr}")
             print(f"[CONFIG] Optimizer LR forced to: {new_lr}")
             
             # # # Cập nhật "trần" cho Scheduler để các chu kỳ sau không vượt quá 1e-5
