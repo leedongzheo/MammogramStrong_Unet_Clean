@@ -75,12 +75,13 @@ class AttentionGatingBlock(nn.Module):
 
 # Block Conv đơn giản cho Decoder
 class DecoderBlock(nn.Module):
-    def __init__(self, in_channels, out_channels):
+    def __init__(self, in_channels, out_channels, dropout_prob=0.5):
         super(DecoderBlock, self).__init__()
         self.block = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, kernel_size=3, padding=1),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True),
+            nn.Dropout2d(p=dropout_prob),
             nn.Conv2d(out_channels, out_channels, kernel_size=3, padding=1),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True)
@@ -91,7 +92,7 @@ class DecoderBlock(nn.Module):
 # --- MODEL CHÍNH VỚI RESNET BACKBONE ---
 
 class PyramidCbamGateResNetUNet(nn.Module):
-    def __init__(self, in_channels=3, out_channels=1, backbone_name='resnet34', deep_supervision=True):
+    def __init__(self, in_channels=3, out_channels=1, backbone_name='resnet34', deep_supervision=True, dropout_prob=0.5):
         super(PyramidCbamGateResNetUNet, self).__init__()
         # 2. Pyramid Input Scaling Layers
         self.deep_supervision = deep_supervision
@@ -151,20 +152,19 @@ class PyramidCbamGateResNetUNet(nn.Module):
         # 5. Decoder Path
         # Up1: Center(512) -> Up(256) + Attn1(256) -> Conv(256)
         self.up1 = nn.ConvTranspose2d(512, 256, kernel_size=2, stride=2)
-        self.dec1 = DecoderBlock(256 + 256, 256)
+        self.dec1 = DecoderBlock(256 + 256, 256, dropout_prob=dropout_prob)
         
         # Up2: Dec1(256) -> Up(128) + Attn2(128) -> Conv(128)
         self.up2 = nn.ConvTranspose2d(256, 128, kernel_size=2, stride=2)
-        self.dec2 = DecoderBlock(128 + 128, 128)
+        self.dec2 = DecoderBlock(128 + 128, 128, dropout_prob=dropout_prob) 
         
         # Up3: Dec2(128) -> Up(64) + Attn3(64) -> Conv(64)
         self.up3 = nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2)
-        self.dec3 = DecoderBlock(64 + 64, 64)
-        
+        self.dec3 = DecoderBlock(64 + 64, 64, dropout_prob=dropout_prob)   
         # Up4: Dec3(64) -> Up(64) + Encoder0(64) -> Conv(32)
         # Encoder0 là lớp stem đầu tiên, kích thước lớn nhất
         self.up4 = nn.ConvTranspose2d(64, 64, kernel_size=2, stride=2)
-        self.dec4 = DecoderBlock(64 + 64, 32)
+        self.dec4 = DecoderBlock(64 + 64, 32, dropout_prob=dropout_prob)  
 
         # Final Conv
         self.final = nn.Conv2d(32, out_channels, kernel_size=1)
