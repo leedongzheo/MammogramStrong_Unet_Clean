@@ -93,11 +93,19 @@ def main(args):
     
     # 1. Khởi tạo Model
     print(f"[INFO] Initializing Model...")
-    model = unet_pyramid_cbam_gate.PyramidCbamGateResNet50UNet(
-        in_channels=3, 
-        out_channels=1, 
-        deep_supervision=True,
-        dropout_prob=0.5)
+    # model = unet_pyramid_cbam_gate.PyramidCbamGateResNet50UNet(
+    #     in_channels=3, 
+    #     out_channels=1, 
+    #     deep_supervision=True,
+    #     dropout_prob=0.5)
+    model = smp.DeepLabV3Plus(
+        # encoder_name="tu-resnest50d", # ResNeSt rất mạnh cho y tế, hoặc dùng efficientnet-b3
+        encoder_name = "efficientnet-b4"
+        encoder_weights="imagenet",
+        in_channels=3,
+        classes=1,
+        drop_path_rate=0.2
+)
     # 2. Khởi tạo Optimizer
     opt = optimizer_module.optimizer(model=model) 
     # --- [CHÍNH XÁC: KHỞI TẠO SEQUENTIAL LR TẠI ĐÂY] ---
