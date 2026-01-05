@@ -280,7 +280,7 @@ def main(args):
                 trainer.optimizer, 
                 mode='max',      # Theo dõi Dice Mass (càng cao càng tốt)
                 factor=0.5,      # Giảm 1 nửa khi bão hòa
-                patience=10,     # Chờ 10 epoch
+                patience=5,     # Chờ 10 epoch
                 # verbose=True,
                 min_lr=1e-6      # Đáy để kích hoạt reset
             )
