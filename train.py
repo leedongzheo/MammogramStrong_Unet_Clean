@@ -306,7 +306,7 @@ def main(args):
         trainLoader_strong, validLoader, _ = get_dataloaders(aug_mode=mode_stage23)
         
         trainer.num_epochs = NUM_EPOCHS # Max epoch
-        trainer.patience = 20  # Patient 20 cho GD3         
+        trainer.patience = 25  # Patient 20 cho GD3         
         trainer.early_stop_counter = 0
         # Chạy GD3 đến khi Early Stop kích hoạt        
         trainer.train(trainLoader_strong, validLoader, resume_path=None) 
