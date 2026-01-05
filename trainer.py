@@ -10,7 +10,7 @@ class Trainer:
         self.criterion = criterion
         self.patience = patience
         self.optimizer = optimizer
-        
+        self.scheduler = scheduler
         # Tracking metrics
         self.early_stop_counter = 0
         # Lưu history riêng biệt để vẽ biểu đồ sau này nếu cần
@@ -37,28 +37,28 @@ class Trainer:
         # Giả sử LR gốc trong optimizer là 1e-4.
         # Chúng ta muốn bắt đầu từ 1e-6 -> start_factor = 1e-6 / 1e-4 = 0.01
         
-        # 1. Scheduler 1: Warm-up (Linear tăng dần) trong 5 Epochs đầu
-        warmup_scheduler = LinearLR(
-            self.optimizer, 
-            start_factor = 0.01, # Bắt đầu từ LR * 0.01
-            end_factor = 1.0,    # Kết thúc tại LR * 1.0
-            total_iters = warmup_epochs      # Kéo dài 10 epoch
-        )
+        # # 1. Scheduler 1: Warm-up (Linear tăng dần) trong 5 Epochs đầu
+        # warmup_scheduler = LinearLR(
+        #     self.optimizer, 
+        #     start_factor = 0.01, # Bắt đầu từ LR * 0.01
+        #     end_factor = 1.0,    # Kết thúc tại LR * 1.0
+        #     total_iters = warmup_epochs      # Kéo dài 10 epoch
+        # )
 
-        # 2. Scheduler 2: Main (Cosine Annealing) chạy sau khi warm-up xong
-        main_scheduler = CosineAnnealingWarmRestarts(
-            self.optimizer, 
-            T_0=10, 
-            T_mult=2, 
-            eta_min=1e-6
-        )
-        # Scheduler
-        # self.scheduler = CosineAnnealingWarmRestarts(self.optimizer, T_0=10, T_mult=2, eta_min=1e-6)
-        self.scheduler = SequentialLR(
-            self.optimizer, 
-            schedulers=[warmup_scheduler, main_scheduler], 
-            milestones=[warmup_epochs] 
-        )
+        # # 2. Scheduler 2: Main (Cosine Annealing) chạy sau khi warm-up xong
+        # main_scheduler = CosineAnnealingWarmRestarts(
+        #     self.optimizer, 
+        #     T_0=10, 
+        #     T_mult=2, 
+        #     eta_min=1e-6
+        # )
+        # # Scheduler
+        # # self.scheduler = CosineAnnealingWarmRestarts(self.optimizer, T_0=10, T_mult=2, eta_min=1e-6)
+        # self.scheduler = SequentialLR(
+        #     self.optimizer, 
+        #     schedulers=[warmup_scheduler, main_scheduler], 
+        #     milestones=[warmup_epochs] 
+        # )
         # Start epoch
         self.start_epoch = 0
 
@@ -259,7 +259,7 @@ class Trainer:
                     # B. Reset Scheduler (Tạo mới lại chính nó)
                     # Lý do: Để reset bộ đếm patience và best metric về trạng thái ban đầu
                     # Lưu ý: Các tham số này phải khớp với cấu hình trong main()
-                    self.scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+                    self.scheduler = ReduceLROnPlateau(
                         self.optimizer, 
                         mode = old_mode, 
                         factor = old_factor,   # Dùng lại factor cũ (0.5)
