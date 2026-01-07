@@ -173,7 +173,7 @@ def main(args):
             trainer.train(trainLoader_weak, validLoader, resume_path=None)
             # --- [THÊM] MỞ BĂNG BACKBONE (Để chuẩn bị cho GD2) ---
             set_grad_status(model, freeze=False)
-            resume_checkpoint = "last_model.pth" 
+            resume_checkpoint = "best_dice_mass_model.pth" 
         else:
             print("\n[INFO] Skipping Stage 1 (Warm-up). Starting directly with Main Training.")
             # Đảm bảo chắc chắn là đã Unfreeze nếu không chạy Stage 1
