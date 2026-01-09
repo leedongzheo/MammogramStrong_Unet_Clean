@@ -151,7 +151,8 @@ def main(args):
             mode_stage1 = 'none'
             mode_stage23 = 'none'
             print(f"[INFO] Augmentation: OFF (All Stages: none)")
-        if args.augment and args.warmup > 0:
+        # if args.augment and args.warmup > 0:
+        if args.warmup > 0:
 
             # =========================================================
             # GIAI ĐOẠN 1: WARM-UP
