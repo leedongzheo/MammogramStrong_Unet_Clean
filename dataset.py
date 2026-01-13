@@ -19,7 +19,8 @@ GLOBAL_MIN_AREA_DEFAULT = 143.5
 # NORM_MEAN = [0.1608, 0.1751, 0.1216]
 # NORM_STD  = [0.2526, 0.2466, 0.1983]
 # Ảnh 3 channel grayscale-CLAHE-ComboGamma_CLAHE 640x640
-if "args.augment":
+if augment:
+	print("Có augmet, dùng cho Ảnh 3 channel grayscale-CLAHE-ComboGamma_CLAHE 640x640")
 	NORM_MEAN = [0.2512, 0.2741, 0.1900]
 	NORM_STD = [0.2775, 0.2605, 0.2203]
 # Ảnh 3 channel grayscale 640x640
