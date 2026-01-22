@@ -115,29 +115,46 @@ def main(args):
 #         classes=1,
 #         drop_path_rate=0.5
 # )
-    # SwinUnet
+    # SwinUnet => Size ảnh ko khớp => Bỏ
     
+#     model = smp.Unet(
+#         # --- CẤU HÌNH QUAN TRỌNG NHẤT ---
+#         # Thay backbone CNN (ResNest) bằng Swin Transformer
+#         # Các lựa chọn: 
+#         # - 'swin_tiny_patch4_window7_224' (Nhẹ nhất, ~ResNet50)
+#         # - 'swin_small_patch4_window7_224' (~ResNet101)
+#         # - 'swin_base_patch4_window7_224' (Mạnh, rất nặng VRAM)
+#         encoder_name="tu-swin_base_patch4_window7_224", 
+        
+#         encoder_weights="imagenet",
+#         in_channels=3,
+#         classes=1,
+        
+#         # Swin Transformer không nhận drop_path_rate ở ngoài
+#         # Phải đưa vào encoder_params
+#         encoder_params={
+#             "drop_path_rate": 0.2, # Swin khá nhạy cảm, nên để thấp (0.2-0.3)
+#         },
+        
+#         # Tùy chọn: Thêm Attention cho Decoder để "full option"
+#         decoder_attention_type="scse" 
+# )
+    #  Thay thế SwinUnet bằng ConvNeXt
     model = smp.Unet(
-        # --- CẤU HÌNH QUAN TRỌNG NHẤT ---
-        # Thay backbone CNN (ResNest) bằng Swin Transformer
-        # Các lựa chọn: 
-        # - 'swin_tiny_patch4_window7_224' (Nhẹ nhất, ~ResNet50)
-        # - 'swin_small_patch4_window7_224' (~ResNet101)
-        # - 'swin_base_patch4_window7_224' (Mạnh, rất nặng VRAM)
-        encoder_name="tu-swin_base_patch4_window7_224", 
+        # ConvNeXt Tiny: Mạnh ~ ResNet50 / Swin-Tiny
+        # ConvNeXt Base: Mạnh ~ ResNet101 / Swin-Base
+        # Thêm tiền tố "tu-" vì nó lấy từ timm
+        encoder_name="tu-convnext_tiny", 
         
         encoder_weights="imagenet",
         in_channels=3,
         classes=1,
         
-        # Swin Transformer không nhận drop_path_rate ở ngoài
-        # Phải đưa vào encoder_params
-        encoder_params={
-            "drop_path_rate": 0.2, # Swin khá nhạy cảm, nên để thấp (0.2-0.3)
-        },
+        # ConvNeXt dùng Drop Path giống Swin
+        encoder_params={"drop_path_rate": 0.2}, 
         
-        # Tùy chọn: Thêm Attention cho Decoder để "full option"
-        decoder_attention_type="scse" 
+        # Vẫn nên thêm Attention cho Decoder
+        decoder_attention_type="scse"
 )
     # tranUnet (using)
     # Thay vì TransUNet (chưa có trong SMP), ta dùng Unet với Encoder là Transformer
