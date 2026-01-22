@@ -26,7 +26,7 @@ if augment:
 	print("Có augmet, dùng cho ảnh 3 channel grayscale-CLAHE-ComboGamma_CLAHE 640x640")
 	NORM_MEAN = [0.1608, 0.1754, 0.1216]
 	NORM_STD = [0.2526, 0.2464, 0.1984]
-# Ảnh 3 channel grayscale 640x640
+# Ảnh 3 channel grayscale 512x512, 640x640, 1024x1024
 else: 
 	print("Không có augmet, dùng cho ảnh 3 channel grayscale-CLAHE-ComboGamma_CLAHE 640x640")
 	NORM_MEAN = [0.1608, 0.1608, 0.1608]
