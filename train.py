@@ -98,15 +98,39 @@ def main(args):
     #     out_channels=1, 
     #     deep_supervision=True,
     #     dropout_prob=0.5)
-    # model = smp.DeepLabV3Plus(
-    #         # encoder_name="tu-resnest50d", # ResNeSt rất mạnh cho y tế, hoặc dùng efficientnet-b3
-    #         # encoder_name = "efficientnet-b4"
-    #         encoder_name="tu-resnest50d",
-    #         encoder_weights="imagenet",
-    #         in_channels=3,
-    #         classes=1,
-    #         drop_path_rate=0.2
-    # )
+    # DeepLabV3+
+    model = smp.DeepLabV3Plus(
+            # encoder_name="tu-resnest50d", # ResNeSt rất mạnh cho y tế, hoặc dùng efficientnet-b3
+            # encoder_name = "efficientnet-b4"
+            encoder_name="tu-resnest50d",
+            encoder_weights="imagenet",
+            in_channels=3,
+            classes=1,
+            drop_path_rate=0.2
+    )
+    # 2. Kiểm tra
+    print("--- KIỂM TRA DROP PATH (ResNeSt) ---")
+    found_count = 0
+    current_rate = 0.0
+    
+    for name, module in model.encoder.named_modules():
+        # Trong timm, lớp này thường tên là DropPath
+        if "DropPath" in module.__class__.__name__:
+            current_rate = module.drop_prob
+            found_count += 1
+            # Chỉ cần check 1 cái là biết
+            break 
+    
+    if found_count > 0:
+        print(f"Tìm thấy lớp DropPath! Tỷ lệ hiện tại là: {current_rate}")
+        if current_rate == 0.0:
+            print("=> KẾT LUẬN: Lệnh của bạn BỊ BƠ (Rate vẫn là 0.0)")
+        else:
+            print("=> KẾT LUẬN: Lệnh ĐÃ NHẬN.")
+    else:
+        # ResNeSt trong timm CÓ hỗ trợ DropPath, nên nếu không tìm thấy
+        # nghĩa là rate=0 (nó tự disable layer đó luôn để tiết kiệm tính toán)
+        print("=> Không tìm thấy lớp DropPath nào đang hoạt động (Rate = 0).")
     # UNET++ (used)
 #     model = smp.UnetPlusPlus(
 #         encoder_name="tu-resnest50d", 
@@ -158,26 +182,26 @@ def main(args):
 # )
 # -------------BO DROP-----------------------
     #  Thay thế SwinUnet bằng ConvNeX
-    model = smp.Unet(
-        encoder_name="tu-convnext_tiny", 
-        encoder_weights="imagenet",
-        in_channels=3,
-        classes=1,
-        decoder_attention_type="scse"
-)
-    def set_drop_path_rate(model, drop_rate=0.2):
-        count = 0
-        # Duyệt qua tất cả các module trong encoder
-        for module in model.encoder.modules():
-            # Kiểm tra xem module có phải là DropPath của timm không
-            # (Thường tên class sẽ chứa chữ 'DropPath')
-            if "DropPath" in module.__class__.__name__:
-                module.drop_prob = drop_rate
-                count += 1
-        print(f"[INFO] Đã cập nhật DropPath rate = {drop_rate} cho {count} blocks trong Encoder.")
+#     model = smp.Unet(
+#         encoder_name="tu-convnext_tiny", 
+#         encoder_weights="imagenet",
+#         in_channels=3,
+#         classes=1,
+#         decoder_attention_type="scse"
+# )
+#     def set_drop_path_rate(model, drop_rate=0.2):
+#         count = 0
+#         # Duyệt qua tất cả các module trong encoder
+#         for module in model.encoder.modules():
+#             # Kiểm tra xem module có phải là DropPath của timm không
+#             # (Thường tên class sẽ chứa chữ 'DropPath')
+#             if "DropPath" in module.__class__.__name__:
+#                 module.drop_prob = drop_rate
+#                 count += 1
+#         print(f"[INFO] Đã cập nhật DropPath rate = {drop_rate} cho {count} blocks trong Encoder.")
 
-    # Gọi hàm để set rate là 0.2
-    set_drop_path_rate(model, drop_rate=0.2)
+#     # Gọi hàm để set rate là 0.2
+#     set_drop_path_rate(model, drop_rate=0.2)
     # tranUnet (using)
     # Thay vì TransUNet (chưa có trong SMP), ta dùng Unet với Encoder là Transformer
 #     model = smp.Unet(
