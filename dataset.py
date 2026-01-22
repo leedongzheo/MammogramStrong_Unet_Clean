@@ -19,8 +19,8 @@ if INPUT_IMAGE_WIDTH == 1024:
 elif INPUT_IMAGE_WIDTH == 640:
 	METADATA_PATH = "train_metadata.csv"
 # ImageNet:
-NORM_MEAN = [0.485, 0.456, 0.406]
-NORM_STD  = [0.229, 0.224, 0.225]
+# NORM_MEAN = [0.485, 0.456, 0.406]
+# NORM_STD  = [0.229, 0.224, 0.225]
 # Giá trị an toàn mặc định nếu không tìm thấy trong CSV
 GLOBAL_MIN_AREA_DEFAULT = 143.5  
 # Luc dau chuan hoa sai do dùng mean, std 512 áp lên ảnh 640
@@ -30,22 +30,22 @@ GLOBAL_MIN_AREA_DEFAULT = 143.5
 # NORM_MEAN = [0.1608, 0.1751, 0.1216]
 # NORM_STD  = [0.2526, 0.2466, 0.1983]
 # Ảnh 3 channel grayscale-CLAHE-ComboGamma_CLAHE 640x640
-# if augment:
-# 	if INPUT_IMAGE_WIDTH == 1024:
-# 		print("Có augmet, dùng cho ảnh 3 channel grayscale-CLAHE-ComboGamma_CLAHE 1024x1024")
-# 		NORM_MEAN = [0.1608, 0.1763, 0.1217]
-# 		NORM_STD = [0.2527, 0.2459, 0.1986]
-# 	elif INPUT_IMAGE_WIDTH == 640:
-# 		print("Có augmet, dùng cho ảnh 3 channel grayscale-CLAHE-ComboGamma_CLAHE 640x640")
-# 		NORM_MEAN = [0.1608, 0.1754, 0.1216]
-# 		NORM_STD = [0.2526, 0.2464, 0.1984]
-# # Ảnh 3 channel grayscale 512x512, 640x640, 1024x1024
-# else: 
-# 	if INPUT_IMAGE_WIDTH == 640:
-# 		print("Không có augmet, dùng cho ảnh 3 channel grayscale-grayscale-grayscalea 640x640")
-# 		NORM_MEAN = [0.1608, 0.1608, 0.1608]
-# 		NORM_STD = [0.2526, 0.2526, 0.2526]
-# 
+if augment:
+	if INPUT_IMAGE_WIDTH == 1024:
+		print("Có augmet, dùng cho ảnh 3 channel grayscale-CLAHE-ComboGamma_CLAHE 1024x1024")
+		NORM_MEAN = [0.1608, 0.1763, 0.1217]
+		NORM_STD = [0.2527, 0.2459, 0.1986]
+	elif INPUT_IMAGE_WIDTH == 640:
+		print("Có augmet, dùng cho ảnh 3 channel grayscale-CLAHE-ComboGamma_CLAHE 640x640")
+		NORM_MEAN = [0.1608, 0.1754, 0.1216]
+		NORM_STD = [0.2526, 0.2464, 0.1984]
+# Ảnh 3 channel grayscale 512x512, 640x640, 1024x1024
+else: 
+	if INPUT_IMAGE_WIDTH == 640:
+		print("Không có augmet, dùng cho ảnh 3 channel grayscale-grayscale-grayscalea 640x640")
+		NORM_MEAN = [0.1608, 0.1608, 0.1608]
+		NORM_STD = [0.2526, 0.2526, 0.2526]
+
 # --- HELPER FUNCTIONS ---
 def get_clean_breast_mask(image):
     if len(image.shape) == 3:
