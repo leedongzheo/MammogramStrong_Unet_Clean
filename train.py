@@ -163,7 +163,7 @@ def main(args):
         
         # --- SỬA LỖI DROP_PATH_RATE ---
         # Phải đưa vào encoder_params mới đúng, để ở ngoài sẽ không có tác dụng hoặc báo lỗi
-        encoder_params={"drop_path_rate": 0.5}
+        drop_path_rate=0.5
 )
     # 2. Khởi tạo Optimizer
     opt = optimizer_module.optimizer(model=model) 
