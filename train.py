@@ -151,8 +151,7 @@ def main(args):
         classes=1,
         
         # ConvNeXt dùng Drop Path giống Swin
-        encoder_params={"drop_path_rate": 0.2}, 
-        
+        drop_path_rate=0.2,
         # Vẫn nên thêm Attention cho Decoder
         decoder_attention_type="scse"
 )
