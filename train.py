@@ -107,6 +107,7 @@ def main(args):
     #         classes=1,
     #         drop_path_rate=0.2
     # )
+    # UNET++ (used)
 #     model = smp.UnetPlusPlus(
 #         encoder_name="tu-resnest50d", 
 #         encoder_weights="imagenet",
@@ -115,17 +116,18 @@ def main(args):
 #         drop_path_rate=0.5
 # )
     # Thay vì TransUNet (chưa có trong SMP), ta dùng Unet với Encoder là Transformer
-#     model = smp.Unet(
-#         # mit_b3 là backbone của SegFormer, mạnh tương đương ResNet50/101
-#         # nhưng dùng cơ chế Self-Attention.
-#         encoder_name="mit_b3",        
-#         encoder_weights="imagenet",
-#         in_channels=3,
-#         classes=1,
-#         # Các backbone Transformer trong SMP thường không nhận tham số drop_path_rate 
-#         # trực tiếp ở đây, nên ta bỏ dòng đó đi để tránh lỗi.
-#         decoder_use_batchnorm=True,
-# )
+    model = smp.Unet(
+        # mit_b3 là backbone của SegFormer, mạnh tương đương ResNet50/101
+        # nhưng dùng cơ chế Self-Attention.
+        encoder_name="mit_b3",        
+        encoder_weights="imagenet",
+        in_channels=3,
+        classes=1,
+        # Các backbone Transformer trong SMP thường không nhận tham số drop_path_rate 
+        # trực tiếp ở đây, nên ta bỏ dòng đó đi để tránh lỗi.
+        decoder_use_batchnorm=True,
+)
+    # UNET++ attention (Used)
 #     model = smp.UnetPlusPlus(
 #         encoder_name="tu-resnest50d", 
 #         encoder_weights="imagenet",
@@ -140,7 +142,7 @@ def main(args):
 #         # Đưa vào encoder_params mới đúng cú pháp
 #         drop_path_rate=0.5
 # )
-    # UNet thường
+    # UNet thường (Used)
 #     model = smp.Unet(
 #         encoder_name="tu-resnest50d", 
 #         encoder_weights="imagenet",
@@ -150,21 +152,21 @@ def main(args):
 #         drop_path_rate=0.5
 # )
     # attentionUnet
-    model = smp.Unet(
-        encoder_name="tu-resnest50d", 
-        encoder_weights="imagenet",
-        in_channels=3,
-        classes=1,
+#     model = smp.Unet(
+#         encoder_name="tu-resnest50d", 
+#         encoder_weights="imagenet",
+#         in_channels=3,
+#         classes=1,
         
-        # --- THÊM DÒNG NÀY ĐỂ THÀNH ATTENTION UNET ---
-        # scse: Spatial and Channel Squeeze & Excitation Attention
-        # Nó sẽ chèn các block attention vào sau mỗi tầng Decoder
-        decoder_attention_type="scse",
+#         # --- THÊM DÒNG NÀY ĐỂ THÀNH ATTENTION UNET ---
+#         # scse: Spatial and Channel Squeeze & Excitation Attention
+#         # Nó sẽ chèn các block attention vào sau mỗi tầng Decoder
+#         decoder_attention_type="scse",
         
-        # --- SỬA LỖI DROP_PATH_RATE ---
-        # Phải đưa vào encoder_params mới đúng, để ở ngoài sẽ không có tác dụng hoặc báo lỗi
-        drop_path_rate=0.5
-)
+#         # --- SỬA LỖI DROP_PATH_RATE ---
+#         # Phải đưa vào encoder_params mới đúng, để ở ngoài sẽ không có tác dụng hoặc báo lỗi
+#         drop_path_rate=0.5
+# )
     # 2. Khởi tạo Optimizer
     opt = optimizer_module.optimizer(model=model) 
     # --- [CHÍNH XÁC: KHỞI TẠO SEQUENTIAL LR TẠI ĐÂY] ---
