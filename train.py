@@ -107,12 +107,24 @@ def main(args):
     #         classes=1,
     #         drop_path_rate=0.2
     # )
-    model = smp.UnetPlusPlus(
-        encoder_name="tu-resnest50d", 
+#     model = smp.UnetPlusPlus(
+#         encoder_name="tu-resnest50d", 
+#         encoder_weights="imagenet",
+#         in_channels=3,
+#         classes=1,
+#         drop_path_rate=0.5
+# )
+    # Thay vì TransUNet (chưa có trong SMP), ta dùng Unet với Encoder là Transformer
+    model = smp.Unet(
+        # mit_b3 là backbone của SegFormer, mạnh tương đương ResNet50/101
+        # nhưng dùng cơ chế Self-Attention.
+        encoder_name="mit_b3",        
         encoder_weights="imagenet",
         in_channels=3,
         classes=1,
-        drop_path_rate=0.5
+        # Các backbone Transformer trong SMP thường không nhận tham số drop_path_rate 
+        # trực tiếp ở đây, nên ta bỏ dòng đó đi để tránh lỗi.
+        decoder_use_batchnorm=True,
 )
 #     model = smp.UnetPlusPlus(
 #         encoder_name="tu-resnest50d", 
