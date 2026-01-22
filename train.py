@@ -107,27 +107,27 @@ def main(args):
     #         classes=1,
     #         drop_path_rate=0.2
     # )
-#     model = smp.UnetPlusPlus(
-#         encoder_name="tu-resnest50d", 
-#         encoder_weights="imagenet",
-#         in_channels=3,
-#         classes=1,
-#         drop_path_rate=0.5
-# )
     model = smp.UnetPlusPlus(
         encoder_name="tu-resnest50d", 
         encoder_weights="imagenet",
         in_channels=3,
         classes=1,
-        
-        # --- QUAN TRỌNG: THÊM DÒNG NÀY ĐỂ CÓ ATTENTION ---
-        # scse giúp mô hình vừa lọc không gian (Spatial) vừa lọc kênh (Channel)
-        decoder_attention_type="scse",
-        
-        # --- SỬA LỖI DROP_PATH_RATE ---
-        # Đưa vào encoder_params mới đúng cú pháp
         drop_path_rate=0.5
 )
+#     model = smp.UnetPlusPlus(
+#         encoder_name="tu-resnest50d", 
+#         encoder_weights="imagenet",
+#         in_channels=3,
+#         classes=1,
+        
+#         # --- QUAN TRỌNG: THÊM DÒNG NÀY ĐỂ CÓ ATTENTION ---
+#         # scse giúp mô hình vừa lọc không gian (Spatial) vừa lọc kênh (Channel)
+#         decoder_attention_type="scse",
+        
+#         # --- SỬA LỖI DROP_PATH_RATE ---
+#         # Đưa vào encoder_params mới đúng cú pháp
+#         drop_path_rate=0.5
+# )
 #     model = smp.Unet(
 #         encoder_name="tu-resnest50d", 
 #         encoder_weights="imagenet",
@@ -419,7 +419,7 @@ def main(args):
         trainLoader, validLoader, testLoader = get_dataloaders(aug_mode='none', state='evaluate')
         
         eval_tasks = [
-            (trainLoader, "train"),
+            # (trainLoader, "train"),
             (validLoader, "valid"),
             (testLoader, "test")
         ]
