@@ -382,99 +382,99 @@ def main(args):
         # GIAI ĐOẠN 4: SWA (STOCHASTIC WEIGHT AVERAGING)
         # =========================================================
         # Chỉ chạy SWA nếu đang dùng FocalTversky (chiến lược của bạn)
-        if args.loss == "FocalTversky_loss":
-            print("\n" + "="*40)
-            print(" GIAI ĐOẠN 4: SWA FINETUNING (The Secret Weapon)")
-            print(" Strategy: Constant LR | No Early Stop | 20 Epochs")
-            print("="*40)
+        # if args.loss == "FocalTversky_loss":
+        #     print("\n" + "="*40)
+        #     print(" GIAI ĐOẠN 4: SWA FINETUNING (The Secret Weapon)")
+        #     print(" Strategy: Constant LR | No Early Stop | 20 Epochs")
+        #     print("="*40)
 
-            # 1. QUAN TRỌNG: Load lại BEST MODEL của GD3 (Không dùng model cuối cùng)
-            # best_model_path = "best_dice_mass_model.pth"
-            best_ep = trainer.best_epoch_dice
-            best_d = trainer.best_dice_mass
-            folder_name = f"output_epoch{best_ep}_diceMass{best_d:.4f}"
-            exported_best_model_path = os.path.join(BASE_OUTPUT, folder_name, "best_dice_mass_model.pth")
-            if os.path.exists(exported_best_model_path):
-                print(f"[INFO] Loading BEST model from Stage 3 for SWA: {exported_best_model_path}")
-                trainer.load_checkpoint(exported_best_model_path)
-            else:
-                print("[WARNING] Could not find exported best model. Trying local 'best_dice_mass_model.pth'...")
-                if os.path.exists("best_dice_mass_model.pth"):
-                    trainer.load_checkpoint("best_dice_mass_model.pth")
+        #     # 1. QUAN TRỌNG: Load lại BEST MODEL của GD3 (Không dùng model cuối cùng)
+        #     # best_model_path = "best_dice_mass_model.pth"
+        #     best_ep = trainer.best_epoch_dice
+        #     best_d = trainer.best_dice_mass
+        #     folder_name = f"output_epoch{best_ep}_diceMass{best_d:.4f}"
+        #     exported_best_model_path = os.path.join(BASE_OUTPUT, folder_name, "best_dice_mass_model.pth")
+        #     if os.path.exists(exported_best_model_path):
+        #         print(f"[INFO] Loading BEST model from Stage 3 for SWA: {exported_best_model_path}")
+        #         trainer.load_checkpoint(exported_best_model_path)
+        #     else:
+        #         print("[WARNING] Could not find exported best model. Trying local 'best_dice_mass_model.pth'...")
+        #         if os.path.exists("best_dice_mass_model.pth"):
+        #             trainer.load_checkpoint("best_dice_mass_model.pth")
 
-            # 2. Khởi tạo SWA
-            swa_model = AveragedModel(trainer.model)
-            # LR cho SWA: Cao hơn GD3 một chút để thoát hố (5e-5 là an toàn với AdamW)
-            swa_lr = 5e-5 
-            swa_scheduler = SWALR(trainer.optimizer, swa_lr=swa_lr, anneal_epochs=3)
+        #     # 2. Khởi tạo SWA
+        #     swa_model = AveragedModel(trainer.model)
+        #     # LR cho SWA: Cao hơn GD3 một chút để thoát hố (5e-5 là an toàn với AdamW)
+        #     swa_lr = 5e-5 
+        #     swa_scheduler = SWALR(trainer.optimizer, swa_lr=swa_lr, anneal_epochs=3)
             
-            print(f"[CONFIG] SWA Scheduler set. LR: {swa_lr}")
+        #     print(f"[CONFIG] SWA Scheduler set. LR: {swa_lr}")
 
-            # 3. Cấu hình vòng lặp SWA
-            SWA_EPOCHS = 5 # Chạy cố định
-            trainer.patience = 999 # Tắt Early Stop
-            trainer.early_stop_counter = 0
+        #     # 3. Cấu hình vòng lặp SWA
+        #     SWA_EPOCHS = 5 # Chạy cố định
+        #     trainer.patience = 999 # Tắt Early Stop
+        #     trainer.early_stop_counter = 0
             
-            # Chúng ta sẽ dùng lại hàm train() của Trainer nhưng chạy từng epoch một
-            # để chèn logic update_parameters vào giữa.
+        #     # Chúng ta sẽ dùng lại hàm train() của Trainer nhưng chạy từng epoch một
+        #     # để chèn logic update_parameters vào giữa.
             
-            print("[INFO] Starting SWA Loop...")
-            for epoch in range(SWA_EPOCHS):
-                # Hack: Set epoch = 1 để Trainer chạy 1 vòng rồi thoát ra
-                trainer.num_epochs = 1 
-                trainer.start_epoch = 0 
-                # Gán scheduler SWA vào trainer
-                trainer.scheduler = swa_scheduler
+        #     print("[INFO] Starting SWA Loop...")
+        #     for epoch in range(SWA_EPOCHS):
+        #         # Hack: Set epoch = 1 để Trainer chạy 1 vòng rồi thoát ra
+        #         trainer.num_epochs = 1 
+        #         trainer.start_epoch = 0 
+        #         # Gán scheduler SWA vào trainer
+        #         trainer.scheduler = swa_scheduler
                 
-                # Train 1 epoch (Không load checkpoint, chạy tiếp từ bộ nhớ)
-                # Lưu ý: Trainer sẽ in ra log validation, cứ kệ nó.
-                print(f"\n[SWA] Epoch {epoch+1}/{SWA_EPOCHS}")
-                trainer.train(trainLoader_strong, validLoader, resume_path=None)
+        #         # Train 1 epoch (Không load checkpoint, chạy tiếp từ bộ nhớ)
+        #         # Lưu ý: Trainer sẽ in ra log validation, cứ kệ nó.
+        #         print(f"\n[SWA] Epoch {epoch+1}/{SWA_EPOCHS}")
+        #         trainer.train(trainLoader_strong, validLoader, resume_path=None)
                 
-                # Cập nhật trọng số trung bình
-                swa_model.update_parameters(trainer.model)
+        #         # Cập nhật trọng số trung bình
+        #         swa_model.update_parameters(trainer.model)
                 
-                # Step Scheduler
-                swa_scheduler.step()
+        #         # Step Scheduler
+        #         swa_scheduler.step()
                 
-            # 4. Cập nhật Batch Norm (Bước bắt buộc)
-            print("\n[INFO] Updating Batch Normalization statistics for SWA Model...")
-            update_bn(trainLoader_strong, swa_model, device=DEVICE)
+        #     # 4. Cập nhật Batch Norm (Bước bắt buộc)
+        #     print("\n[INFO] Updating Batch Normalization statistics for SWA Model...")
+        #     update_bn(trainLoader_strong, swa_model, device=DEVICE)
 
-            # 5. Lưu và Đánh giá SWA Model
-            swa_save_path = os.path.join(BASE_OUTPUT, "best_model_swa.pth")
-            print(f"[INFO] Saving SWA Model to {swa_save_path}")
-            swa_checkpoint = {
-                'epoch': SWA_EPOCHS,
-                'model_state_dict': swa_model.state_dict(),         # <--- Đã sửa để khớp tên layer
-                'optimizer_state_dict': trainer.optimizer.state_dict(), # Để không lỗi optimizer
+        #     # 5. Lưu và Đánh giá SWA Model
+        #     swa_save_path = os.path.join(BASE_OUTPUT, "best_model_swa.pth")
+        #     print(f"[INFO] Saving SWA Model to {swa_save_path}")
+        #     swa_checkpoint = {
+        #         'epoch': SWA_EPOCHS,
+        #         'model_state_dict': swa_model.state_dict(),         # <--- Đã sửa để khớp tên layer
+        #         'optimizer_state_dict': trainer.optimizer.state_dict(), # Để không lỗi optimizer
                 
-                # Các chỉ số thống kê (Lấy từ trainer hiện tại để lưu làm kỷ niệm)
-                'best_val_loss': trainer.best_val_loss, 
-                'best_dice_mass': trainer.best_dice_mass,
-                'best_iou_mass': trainer.best_iou_mass,
-                # 'history': trainer.history,
+        #         # Các chỉ số thống kê (Lấy từ trainer hiện tại để lưu làm kỷ niệm)
+        #         'best_val_loss': trainer.best_val_loss, 
+        #         'best_dice_mass': trainer.best_dice_mass,
+        #         'best_iou_mass': trainer.best_iou_mass,
+        #         # 'history': trainer.history,
                 
-                # QUAN TRỌNG: KHÔNG ĐƯỢC THÊM 'scheduler_state_dict' VÀO ĐÂY
-                # Nếu thêm 'scheduler_state_dict': None -> Sẽ bị lỗi NoneType crash ngay.
-            }
-            torch.save(swa_checkpoint, swa_save_path)
-            # export(trainer)
-            # Đánh giá Model SWA
-            print("\n[INFO] Evaluating SWA Model...")
-            # Gán model SWA vào trainer để evaluate
-            trainer.model = swa_model
+        #         # QUAN TRỌNG: KHÔNG ĐƯỢC THÊM 'scheduler_state_dict' VÀO ĐÂY
+        #         # Nếu thêm 'scheduler_state_dict': None -> Sẽ bị lỗi NoneType crash ngay.
+        #     }
+        #     torch.save(swa_checkpoint, swa_save_path)
+        #     # export(trainer)
+        #     # Đánh giá Model SWA
+        #     print("\n[INFO] Evaluating SWA Model...")
+        #     # Gán model SWA vào trainer để evaluate
+        #     trainer.model = swa_model
             
-            visual_folder = os.path.join(BASE_OUTPUT, "prediction_images_swa")
-            os.makedirs(visual_folder, exist_ok=True)
+        #     visual_folder = os.path.join(BASE_OUTPUT, "prediction_images_swa")
+        #     os.makedirs(visual_folder, exist_ok=True)
             
-            trainer.evaluate(
-                test_loader=validLoader, 
-                checkpoint_path=swa_save_path,
-                save_visuals=True,          
-                output_dir=visual_folder    
-            )
-            export_evaluate(trainer, split_name="valid_swa")
+        #     trainer.evaluate(
+        #         test_loader=validLoader, 
+        #         checkpoint_path=swa_save_path,
+        #         save_visuals=True,          
+        #         output_dir=visual_folder    
+        #     )
+        #     export_evaluate(trainer, split_name="valid_swa")
             
     # (Giữ nguyên phần pretrain/evaluate)
     elif args.mode == "pretrain":
