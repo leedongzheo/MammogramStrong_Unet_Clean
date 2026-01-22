@@ -107,21 +107,21 @@ def main(args):
     #         classes=1,
     #         drop_path_rate=0.2
     # )
-#     model = smp.UnetPlusPlus(
-#         encoder_name="tu-resnest50d", 
-#         encoder_weights="imagenet",
-#         in_channels=3,
-#         classes=1,
-#         drop_path_rate=0.5
-# )
-    model = smp.Unet(
+    model = smp.UnetPlusPlus(
         encoder_name="tu-resnest50d", 
         encoder_weights="imagenet",
         in_channels=3,
         classes=1,
-        # drop_path_rate nên được đưa vào encoder_params để truyền xuống backbone timm
         drop_path_rate=0.5
 )
+#     model = smp.Unet(
+#         encoder_name="tu-resnest50d", 
+#         encoder_weights="imagenet",
+#         in_channels=3,
+#         classes=1,
+#         # drop_path_rate nên được đưa vào encoder_params để truyền xuống backbone timm
+#         drop_path_rate=0.5
+# )
     # 2. Khởi tạo Optimizer
     opt = optimizer_module.optimizer(model=model) 
     # --- [CHÍNH XÁC: KHỞI TẠO SEQUENTIAL LR TẠI ĐÂY] ---
