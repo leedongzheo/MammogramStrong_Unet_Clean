@@ -28,7 +28,7 @@ if augment:
 	NORM_STD = [0.2526, 0.2464, 0.1984]
 # Ảnh 3 channel grayscale 512x512, 640x640, 1024x1024
 else: 
-	print("Không có augmet, dùng cho ảnh 3 channel grayscale-CLAHE-ComboGamma_CLAHE 640x640")
+	print("Không có augmet, dùng cho ảnh 3 channel grayscale-grayscale-grayscalea 640x640")
 	NORM_MEAN = [0.1608, 0.1608, 0.1608]
 	NORM_STD = [0.2526, 0.2526, 0.2526]
 # 
@@ -133,10 +133,10 @@ class OnlineStrongAugmentation:
                 new_area = 0
             else:
                 new_area = max(cv2.contourArea(c) for c in contours)
-			if INPUT_IMAGE_WIDTH == 640:
-            	threshold_area = max(30, min_dataset_area * 0.5)
-			elif INPUT_IMAGE_WIDTH == 1024:
-				threshold_area = max(75, min_dataset_area * 0.5)
+            if INPUT_IMAGE_WIDTH == 640:
+                threshold_area = max(30, min_dataset_area * 0.5)
+            elif INPUT_IMAGE_WIDTH == 1024:
+                threshold_area = max(75, min_dataset_area * 0.5)
             # ĐIỀU KIỆN CHẤP NHẬN:
             # Diện tích mới không được nhỏ hơn diện tích nhỏ nhất của dataset
             if new_area >= threshold_area:
@@ -156,15 +156,15 @@ class OnlineStrongAugmentation:
         # Thiết lập tham số Alpha cho Elastic
         if mass_area > 0:
             mass_side = np.sqrt(mass_area)
-			if INPUT_IMAGE_WIDTH == 640:
-            	alpha = max(30, min(mass_side * 4.0, 80))
-			elif  INPUT_IMAGE_WIDTH == 1024:
-				alpha = max(48, min(mass_side * 4.0, 128))
+            if INPUT_IMAGE_WIDTH == 640:
+                alpha = max(30, min(mass_side * 4.0, 80))
+            elif  INPUT_IMAGE_WIDTH == 1024:
+                alpha = max(48, min(mass_side * 4.0, 128))
         else:
-			if INPUT_IMAGE_WIDTH == 640:
-            	alpha = random.uniform(30, 100)
-			elif  INPUT_IMAGE_WIDTH == 1024:
-				alpha = random.uniform(48, 160)
+            if INPUT_IMAGE_WIDTH == 640:
+                alpha = random.uniform(30, 100)
+            elif  INPUT_IMAGE_WIDTH == 1024:
+                alpha = random.uniform(48, 160)
             
         sigma = alpha * 0.12
 
@@ -231,20 +231,20 @@ class OnlineStrongAugmentation:
             # Công thức: max(8, min(sqrt(0.4 * Area), 30))
             # Kết quả: U nhỏ -> Lỗ 8px. U to -> Lỗ 30px.
             # safe_side_limit = max(8, min(int(np.sqrt(0.4 * current_area)), 30))
-			if INPUT_IMAGE_WIDTH == 640:
-            	safe_side_limit = max(12, min(int(np.sqrt(0.4 * current_area)), 50))            
-			elif  INPUT_IMAGE_WIDTH == 1024:
-				safe_side_limit = max(20, min(int(np.sqrt(0.4 * current_area)), 80)) 
+            if INPUT_IMAGE_WIDTH == 640:
+                safe_side_limit = max(12, min(int(np.sqrt(0.4 * current_area)), 50))            
+            elif  INPUT_IMAGE_WIDTH == 1024:
+                safe_side_limit = max(20, min(int(np.sqrt(0.4 * current_area)), 80)) 
         else:
             # --- TRƯỜNG HỢP NORMAL (KHÔNG CÓ U) ---
             # Không sợ che mất u, nên cho phép lỗ to hơn để tăng độ khó (Strong Aug)
             # Random cận trên từ 15 đến 30 pixel (thay vì cố định 8px như cũ)
             # safe_side_limit = random.randint(15, 30)
-			if INPUT_IMAGE_WIDTH == 640:
+            if INPUT_IMAGE_WIDTH == 640:
                 # Tăng size lỗ đục để tương xứng với ảnh to
-				safe_side_limit = random.randint(25, 50)
+                safe_side_limit = random.randint(25, 50)
                 
-			elif INPUT_IMAGE_WIDTH == 1024: 
+            elif INPUT_IMAGE_WIDTH == 1024: 
                 # Giữ nguyên cho ảnh 640 (Code cũ của bạn là 25, 50 thì điền vào đây)
                 safe_side_limit = random.randint(40, 80) 
 
@@ -264,19 +264,19 @@ class OnlineStrongAugmentation:
                     # Chiến thuật 1: Cấu trúc (Lỗ TO - Ratio THẤP)
                     # Nới trần lên 60px thay vì 30px
                     # real_limit = max(31, min(int(np.sqrt(0.4 * current_area)), 60))
-					if INPUT_IMAGE_WIDTH == 640:
-                    	real_limit = max(50, min(int(np.sqrt(0.4 * current_area)), 100))
-					elif INPUT_IMAGE_WIDTH == 1024:
-						real_limit = max(80, min(int(np.sqrt(0.4 * current_area)), 160))
+                    if INPUT_IMAGE_WIDTH == 640:
+                        real_limit = max(50, min(int(np.sqrt(0.4 * current_area)), 100))
+                    elif INPUT_IMAGE_WIDTH == 1024:
+                        real_limit = max(80, min(int(np.sqrt(0.4 * current_area)), 160))
                     target_hole_size = random.randint(50, real_limit)
                     # target_hole_size = random.randint(30, real_limit) 
                     suggested_ratio_min, suggested_ratio_max = 0.15, 0.3
                 else:
                     # Chiến thuật 2: Texture (Lỗ NHỎ - Ratio CAO)
-					if INPUT_IMAGE_WIDTH == 640:
-                    	target_hole_size = random.randint(10, 20)
-					elif INPUT_IMAGE_WIDTH == 1024:
-						target_hole_size = random.randint(16, 32)
+                    if INPUT_IMAGE_WIDTH == 640:
+                        target_hole_size = random.randint(10, 20)
+                    elif INPUT_IMAGE_WIDTH == 1024:
+                        target_hole_size = random.randint(16, 32)
                     suggested_ratio_min, suggested_ratio_max = 0.35, 0.5
             else:
                 # === KHỐI U VỪA & NHỎ ===
@@ -308,32 +308,36 @@ class OnlineStrongAugmentation:
             if safety_margin > 5.0:
                 # === KHỐI U LỚN ===
                 # Kiểm tra xem lỗ to hay nhỏ để quyết định số lượng
-				if INPUT_IMAGE_WIDTH == 640:
-	                if target_hole_size > 20: 
-	                    # Lỗ to (>20px) -> Chỉ cho phép 2-4 lỗ (Tránh xóa sạch u)
-	                    actual_holes = random.randint(2, 4)
-	                else:
-	                    # Lỗ nhỏ (<=20px) -> Cho phép 5-10 lỗ (Tạo hiệu ứng mưa rào/lưới)
-	                    actual_holes = random.randint(5, 10)
-				elif INPUT_IMAGE_WIDTH == 1024:
-					if target_hole_size > 32: 
-	                    # Lỗ to (>20px) -> Chỉ cho phép 2-4 lỗ (Tránh xóa sạch u)
-	                    actual_holes = random.randint(2, 4)
-	                else:
-	                    # Lỗ nhỏ (<=20px) -> Cho phép 5-10 lỗ (Tạo hiệu ứng mưa rào/lưới)
-	                    actual_holes = random.randint(5, 10)
+                if INPUT_IMAGE_WIDTH == 640:
+                    if target_hole_size > 20:
+                        # Lỗ to (>20px) -> Chỉ cho phép 2-4 lỗ (Tránh xóa sạch u) 
+                        actual_holes = random.randint(2, 4)
+                    else:
+                        # Lỗ nhỏ (<=20px) -> Cho phép 5-10 lỗ (Tạo hiệu ứng mưa rào/lưới)
+                        actual_holes = random.randint(5, 10)
+                elif INPUT_IMAGE_WIDTH == 1024:
+                    if target_hole_size > 32: 
+                        # Lỗ to (>20px) -> Chỉ cho phép 2-4 lỗ (Tránh xóa sạch u)
+                        actual_holes = random.randint(2, 4)
+                    else:
+                        # Lỗ nhỏ (<=20px) -> Cho phép 5-10 lỗ (Tạo hiệu ứng mưa rào/lưới)
+                        actual_holes = random.randint(5, 10)
             elif safety_margin > 2.0:
                 # === KHỐI U VỪA ===
-				if INPUT_IMAGE_WIDTH == 640:
-	                if target_hole_size > 15:
-	                    actual_holes = random.randint(1, 3)
-	                else:
-	                    actual_holes = random.randint(3, 5)
-				elif INPUT_IMAGE_WIDTH == 1024:
-					if target_hole_size > 24:
-	                    actual_holes = random.randint(1, 3)
-	                else:
-	                    actual_holes = random.randint(3, 5)
+                if INPUT_IMAGE_WIDTH == 640:
+                    # if target_hole_size > 15:
+                    #     actual_holes = random.randint(1, 3)
+                    # else:
+	                #     actual_holes = random.randint(3, 5)
+                    if target_hole_size > 15:
+                        actual_holes = random.randint(1, 3)
+                    else:
+                        actual_holes = random.randint(3, 5)
+                elif INPUT_IMAGE_WIDTH == 1024:
+                    if target_hole_size > 24:
+                        actual_holes = random.randint(1, 3)
+                    else:
+                        actual_holes = random.randint(3, 5)
             else:
                 # === KHỐI U NHỎ (SÁT VÁN) ===
                 # An toàn tuyệt đối: Luôn chỉ 1 lỗ
