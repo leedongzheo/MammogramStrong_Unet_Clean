@@ -218,7 +218,7 @@ def main(args):
 
 
     # # Gọi hàm để set rate là 0.2
-    force_drop_path_linear(model, drop_rate=0.2)
+    force_drop_path_linear(model, max_drop_rate=0.2)
     # tranUnet (using)
     # Thay vì TransUNet (chưa có trong SMP), ta dùng Unet với Encoder là Transformer
 #     model = smp.Unet(
