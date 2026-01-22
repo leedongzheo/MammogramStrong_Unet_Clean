@@ -350,14 +350,32 @@ class Trainer:
         if save_visuals:
             os.makedirs(output_dir, exist_ok=True)
             print(f"[INFO] Saving visualization results to: {output_dir}")
-
+        # --- [BẮT ĐẦU ĐO FPS] ---
+        import time
+        total_inference_time = 0 # Tổng thời gian chỉ chạy model
+        total_images = 0         # Tổng số ảnh đã chạy
+        # ------------------------
         with torch.no_grad():
             test_bar = tqdm(enumerate(test_loader), total=len(test_loader), desc="Testing")
             for i, (images, masks, image_paths) in test_bar:
                 images, masks = images.to(self.device), masks.to(self.device)
+                # --- ĐO THỜI GIAN SUY LUẬN ---
+                # Nếu dùng GPU thì cần synchronize để đo chính xác
+                if self.device != 'cpu':
+                    torch.cuda.synchronize()
+                start = time.time()
                 # Forward pass
                 # để tính probability cho visualization.
                 logits = self.model(images)
+                if self.device != 'cpu':
+                    torch.cuda.synchronize()
+                end = time.time()
+                # Cộng dồn thời gian và số lượng ảnh
+                batch_time = end - start
+                total_inference_time += batch_time
+                total_images += images.size(0) # Batch size hiện tại
+                # -----------------------------
+
                 if isinstance(logits, (list, tuple)):
                     logits_for_pred = logits[0]
                 else:
@@ -407,7 +425,15 @@ class Trainer:
                             dice_score=d
                         )
                     # -----------------------------
-
+        # --- TÍNH TOÁN VÀ IN FPS ---
+        avg_fps = total_images / total_inference_time if total_inference_time > 0 else 0
+        avg_time_per_img = (total_inference_time * 1000) / total_images if total_images > 0 else 0
+        print(f"\n[PERFORMANCE REPORT]")
+        print(f"   - Total Images: {total_images}")
+        print(f"   - Total Inference Time: {total_inference_time:.4f}s")
+        print(f"   - FPS: {avg_fps:.2f} frames/sec")
+        print(f"   - Latency: {avg_time_per_img:.2f} ms/img")
+        # ---------------------------
         # Báo cáo kết quả tách biệt
         avg_dice_mass = total_dice_mass / count_mass if count_mass > 0 else 0.0
         avg_dice_norm = total_dice_norm / count_norm if count_norm > 0 else 0.0
