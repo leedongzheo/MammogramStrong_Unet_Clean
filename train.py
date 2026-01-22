@@ -158,6 +158,13 @@ def main(args):
 # )
 # -------------BO DROP-----------------------
     #  Thay thế SwinUnet bằng ConvNeX
+    model = smp.Unet(
+        encoder_name="tu-convnext_tiny", 
+        encoder_weights="imagenet",
+        in_channels=3,
+        classes=1,
+        decoder_attention_type="scse"
+)
     def set_drop_path_rate(model, drop_rate=0.2):
         count = 0
         # Duyệt qua tất cả các module trong encoder
