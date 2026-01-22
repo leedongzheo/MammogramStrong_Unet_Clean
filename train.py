@@ -126,14 +126,14 @@ def main(args):
     #     dropout_prob=0.5)
     # DeepLabV3+
     # --- ÁP DỤNG ---
-    # model = smp.DeepLabV3Plus(
-    #     encoder_name="tu-resnest50d",
-    #     encoder_weights="imagenet",
-    #     in_channels=3,
-    #     classes=1
-    # )
+    model = smp.DeepLabV3Plus(
+        encoder_name="tu-resnest50d",
+        encoder_weights="imagenet",
+        in_channels=3,
+        classes=1
+    )
     # # Gọi hàm ngay sau khi khởi tạo
-    # force_drop_path_linear(model, 0.2)
+    force_drop_path_linear(model, 0.2)
     # 2. Kiểm tra
     # print("--- KIỂM TRA DROP PATH (ResNeSt) ---")
     # found_count = 0
@@ -208,17 +208,17 @@ def main(args):
 # )
 # -------------BO DROP-----------------------
     #  Thay thế SwinUnet bằng ConvNeX
-    model = smp.Unet(
-        encoder_name="tu-convnext_tiny", 
-        encoder_weights="imagenet",
-        in_channels=3,
-        classes=1,
-        decoder_attention_type="scse"
-)
+#     model = smp.Unet(
+#         encoder_name="tu-convnext_tiny", 
+#         encoder_weights="imagenet",
+#         in_channels=3,
+#         classes=1,
+#         decoder_attention_type="scse"
+# )
 
 
-    # # Gọi hàm để set rate là 0.2
-    force_drop_path_linear(model, max_drop_rate=0.2)
+#     # # Gọi hàm để set rate là 0.2
+#     force_drop_path_linear(model, max_drop_rate=0.2)
     # tranUnet (using)
     # Thay vì TransUNet (chưa có trong SMP), ta dùng Unet với Encoder là Transformer
 #     model = smp.Unet(
