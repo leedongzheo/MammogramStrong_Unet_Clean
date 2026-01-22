@@ -18,7 +18,9 @@ if INPUT_IMAGE_WIDTH == 1024:
 	METADATA_PATH = "train_metadata_area_CBIS_DDSM_merge_1024.csv"
 elif INPUT_IMAGE_WIDTH == 640:
 	METADATA_PATH = "train_metadata.csv"
-
+# ImageNet:
+# NORM_MEAN = [0.485, 0.456, 0.406]
+# NORM_STD  = [0.229, 0.224, 0.225]
 # Giá trị an toàn mặc định nếu không tìm thấy trong CSV
 GLOBAL_MIN_AREA_DEFAULT = 143.5  
 # Luc dau chuan hoa sai do dùng mean, std 512 áp lên ảnh 640
