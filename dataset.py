@@ -21,13 +21,13 @@ GLOBAL_MIN_AREA_DEFAULT = 143.5
 # Ảnh 3 channel grayscale-CLAHE-ComboGamma_CLAHE 640x640
 if augment:
 	print("Có augmet, dùng cho ảnh 3 channel grayscale-CLAHE-ComboGamma_CLAHE 640x640")
-	NORM_MEAN = [0.2512, 0.2741, 0.1900]
-	NORM_STD = [0.2775, 0.2605, 0.2203]
+	NORM_MEAN = [0.1608, 0.1754, 0.1216]
+	NORM_STD = [0.2526, 0.2464, 0.1984]
 # Ảnh 3 channel grayscale 640x640
 else: 
 	print("Không có augmet, dùng cho ảnh 3 channel grayscale-CLAHE-ComboGamma_CLAHE 640x640")
-	NORM_MEAN = [0.2512, 0.2512, 0.2512]
-	NORM_STD = [0.2775, 0.2775, 0.2775]
+	NORM_MEAN = [0.1608, 0.1608, 0.1608]
+	NORM_STD = [0.2526, 0.2526, 0.2526]
 # --- HELPER FUNCTIONS ---
 def get_clean_breast_mask(image):
     if len(image.shape) == 3:
