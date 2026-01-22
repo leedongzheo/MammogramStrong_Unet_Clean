@@ -351,7 +351,6 @@ class Trainer:
             os.makedirs(output_dir, exist_ok=True)
             print(f"[INFO] Saving visualization results to: {output_dir}")
         # --- [BẮT ĐẦU ĐO FPS] ---
-        import time
         total_inference_time = 0 # Tổng thời gian chỉ chạy model
         total_images = 0         # Tổng số ảnh đã chạy
         # ------------------------
