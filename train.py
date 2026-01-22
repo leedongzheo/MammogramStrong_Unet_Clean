@@ -116,6 +116,7 @@ def main(args):
 #         drop_path_rate=0.5
 # )
     # SwinUnet
+    
     model = smp.Unet(
         # --- CẤU HÌNH QUAN TRỌNG NHẤT ---
         # Thay backbone CNN (ResNest) bằng Swin Transformer
@@ -123,7 +124,7 @@ def main(args):
         # - 'swin_tiny_patch4_window7_224' (Nhẹ nhất, ~ResNet50)
         # - 'swin_small_patch4_window7_224' (~ResNet101)
         # - 'swin_base_patch4_window7_224' (Mạnh, rất nặng VRAM)
-        encoder_name="swin_base_patch4_window7_224", 
+        encoder_name="tu-swin_base_patch4_window7_224", 
         
         encoder_weights="imagenet",
         in_channels=3,
