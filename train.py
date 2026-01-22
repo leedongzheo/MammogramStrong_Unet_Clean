@@ -140,21 +140,37 @@ def main(args):
 #         decoder_attention_type="scse" 
 # )
     #  Thay thế SwinUnet bằng ConvNeXt
-    model = smp.Unet(
-        # ConvNeXt Tiny: Mạnh ~ ResNet50 / Swin-Tiny
-        # ConvNeXt Base: Mạnh ~ ResNet101 / Swin-Base
-        # Thêm tiền tố "tu-" vì nó lấy từ timm
-        encoder_name="tu-convnext_tiny", 
+# -------------BO DROP-----------------------
+#     model = smp.Unet(
+#         # ConvNeXt Tiny: Mạnh ~ ResNet50 / Swin-Tiny
+#         # ConvNeXt Base: Mạnh ~ ResNet101 / Swin-Base
+#         # Thêm tiền tố "tu-" vì nó lấy từ timm
+#         encoder_name="tu-convnext_tiny", 
         
-        encoder_weights="imagenet",
-        in_channels=3,
-        classes=1,
+#         encoder_weights="imagenet",
+#         in_channels=3,
+#         classes=1,
         
-        # ConvNeXt dùng Drop Path giống Swin
-        drop_path_rate=0.2,
-        # Vẫn nên thêm Attention cho Decoder
-        decoder_attention_type="scse"
-)
+#         # ConvNeXt dùng Drop Path giống Swin
+#         drop_path_rate=0.2,
+#         # Vẫn nên thêm Attention cho Decoder
+#         decoder_attention_type="scse"
+# )
+# -------------BO DROP-----------------------
+    #  Thay thế SwinUnet bằng ConvNeX
+    def set_drop_path_rate(model, drop_rate=0.2):
+        count = 0
+        # Duyệt qua tất cả các module trong encoder
+        for module in model.encoder.modules():
+            # Kiểm tra xem module có phải là DropPath của timm không
+            # (Thường tên class sẽ chứa chữ 'DropPath')
+            if "DropPath" in module.__class__.__name__:
+                module.drop_prob = drop_rate
+                count += 1
+        print(f"[INFO] Đã cập nhật DropPath rate = {drop_rate} cho {count} blocks trong Encoder.")
+
+    # Gọi hàm để set rate là 0.2
+    set_drop_path_rate(model, drop_rate=0.2)
     # tranUnet (using)
     # Thay vì TransUNet (chưa có trong SMP), ta dùng Unet với Encoder là Transformer
 #     model = smp.Unet(
