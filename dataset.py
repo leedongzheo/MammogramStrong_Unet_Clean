@@ -12,6 +12,7 @@ AUG_PROBS = {
 }
 
 # Đường dẫn đến file metadata (đã tạo bằng script offline)
+# 640x640
 # METADATA_PATH = "train_metadata.csv"
 METADATA_PATH = "train_metadata_area_CBIS_DDSM_merge_1024.csv"
 
