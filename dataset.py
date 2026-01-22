@@ -12,7 +12,9 @@ AUG_PROBS = {
 }
 
 # Đường dẫn đến file metadata (đã tạo bằng script offline)
-METADATA_PATH = "train_metadata.csv"
+# METADATA_PATH = "train_metadata.csv"
+METADATA_PATH = "train_metadata_area_CBIS_DDSM_merge_1024.csv"
+
 # Giá trị an toàn mặc định nếu không tìm thấy trong CSV
 GLOBAL_MIN_AREA_DEFAULT = 143.5  
 # Luc dau chuan hoa sai do dùng mean, std 512 áp lên ảnh 640
