@@ -115,6 +115,7 @@ def main(args):
 #         classes=1,
 #         drop_path_rate=0.5
 # )
+    # SwinUnet
     model = smp.Unet(
         # --- CẤU HÌNH QUAN TRỌNG NHẤT ---
         # Thay backbone CNN (ResNest) bằng Swin Transformer
@@ -190,21 +191,21 @@ def main(args):
 #         # Phải đưa vào encoder_params mới đúng, để ở ngoài sẽ không có tác dụng hoặc báo lỗi
 #         drop_path_rate=0.5
 # )
-    # Segformer
-    model = smp.Segformer(
-        # Encoder chuẩn của SegFormer là dòng MiT (Mix Transformer)
-        # mit_b0 (nhẹ nhất) -> mit_b5 (nặng nhất)
-        # mit_b3 là lựa chọn cân bằng, mạnh tương đương ResNet50/ResNest50d
-        encoder_name="mit_b3",        
+    # Segformer (Using)
+#     model = smp.Segformer(
+#         # Encoder chuẩn của SegFormer là dòng MiT (Mix Transformer)
+#         # mit_b0 (nhẹ nhất) -> mit_b5 (nặng nhất)
+#         # mit_b3 là lựa chọn cân bằng, mạnh tương đương ResNet50/ResNest50d
+#         encoder_name="mit_b3",        
         
-        encoder_weights="imagenet",
-        in_channels=3,
-        classes=1,
+#         encoder_weights="imagenet",
+#         in_channels=3,
+#         classes=1,
         
-        # Encoder params vẫn dùng để truyền drop_path_rate
-        # Lưu ý: Với Transformer, drop_path_rate thường để thấp (0.1) thay vì 0.5
-        encoder_params={"drop_path_rate": 0.1} 
-)
+#         # Encoder params vẫn dùng để truyền drop_path_rate
+#         # Lưu ý: Với Transformer, drop_path_rate thường để thấp (0.1) thay vì 0.5
+#         encoder_params={"drop_path_rate": 0.1} 
+# )
     # 2. Khởi tạo Optimizer
     opt = optimizer_module.optimizer(model=model) 
     # --- [CHÍNH XÁC: KHỞI TẠO SEQUENTIAL LR TẠI ĐÂY] ---
