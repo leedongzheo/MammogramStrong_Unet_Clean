@@ -287,6 +287,11 @@ def main(args):
 #         # Lưu ý: Với Transformer, drop_path_rate thường để thấp (0.1) thay vì 0.5
 #         encoder_params={"drop_path_rate": 0.1} 
 # )
+    total_params = sum(p.numel() for p in model.parameters())
+    trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    
+    print(f"[INFO] Tổng số tham số: {total_params:,}") 
+    print(f"[INFO] Tham số cần huấn luyện: {trainable_params:,}")
     # 2. Khởi tạo Optimizer
     opt = optimizer_module.optimizer(model=model) 
     # --- [CHÍNH XÁC: KHỞI TẠO SEQUENTIAL LR TẠI ĐÂY] ---
