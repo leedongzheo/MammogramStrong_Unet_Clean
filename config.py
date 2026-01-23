@@ -27,6 +27,7 @@ import torch.nn.functional as F
 from torch.cuda.amp import autocast, GradScaler
 from torch.nn.utils import clip_grad_norm_
 from matplotlib.colors import ListedColormap
+from thop import profile
 """Phần I: Xét các tham số"""
 # THAM SỐ HẰNG SỐ
 # Đặt seed để đảm bảo tái hiện kết quả
