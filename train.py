@@ -159,13 +159,13 @@ def main(args):
     #     # nghĩa là rate=0 (nó tự disable layer đó luôn để tiết kiệm tính toán)
     #     print("=> Không tìm thấy lớp DropPath nào đang hoạt động (Rate = 0).")
 #     UNET++ (used)
-#     model = smp.UnetPlusPlus(
-#         encoder_name="tu-resnest50d", 
-#         encoder_weights="imagenet",
-#         in_channels=3,
-#         classes=1,
-#         drop_path_rate=0.5
-# )
+    model = smp.UnetPlusPlus(
+        encoder_name="tu-resnest50d", 
+        encoder_weights="imagenet",
+        in_channels=3,
+        classes=1,
+        drop_path_rate=0.5
+)
 #     ## force_drop_path_linear(model, 0.5) => Sai
 #     SwinUnet => Size ảnh ko khớp => Bỏ
     
@@ -193,21 +193,21 @@ def main(args):
 # )
     #  Thay thế SwinUnet bằng ConvNeXt
 
-    model = smp.Unet(
-        # ConvNeXt Tiny: Mạnh ~ ResNet50 / Swin-Tiny
-        # ConvNeXt Base: Mạnh ~ ResNet101 / Swin-Base
-        # Thêm tiền tố "tu-" vì nó lấy từ timm
-        encoder_name="tu-convnext_tiny", 
+#     model = smp.Unet(
+#         # ConvNeXt Tiny: Mạnh ~ ResNet50 / Swin-Tiny
+#         # ConvNeXt Base: Mạnh ~ ResNet101 / Swin-Base
+#         # Thêm tiền tố "tu-" vì nó lấy từ timm
+#         encoder_name="tu-convnext_tiny", 
         
-        encoder_weights="imagenet",
-        in_channels=3,
-        classes=1,
+#         encoder_weights="imagenet",
+#         in_channels=3,
+#         classes=1,
         
-        # ConvNeXt dùng Drop Path giống Swin
-        drop_path_rate=0.2,
-        # Vẫn nên thêm Attention cho Decoder
-        decoder_attention_type="scse"
-)
+#         # ConvNeXt dùng Drop Path giống Swin
+#         drop_path_rate=0.2,
+#         # Vẫn nên thêm Attention cho Decoder
+#         decoder_attention_type="scse"
+# )
 # -------------BO DROP-----------------------
     #  Thay thế SwinUnet bằng ConvNeX
 ##     model = smp.Unet(
