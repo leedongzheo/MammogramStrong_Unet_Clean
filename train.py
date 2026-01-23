@@ -126,14 +126,15 @@ def main(args):
     #     dropout_prob=0.5)
     # DeepLabV3+
     # --- ÁP DỤNG ---
-    # model = smp.DeepLabV3Plus(
-    #     encoder_name="tu-resnest50d",
-    #     encoder_weights="imagenet",
-    #     in_channels=3,
-    #     classes=1
-    # )
-    # # # Gọi hàm ngay sau khi khởi tạo
-    # force_drop_path_linear(model, 0.2)
+    model = smp.DeepLabV3Plus(
+        encoder_name="tu-resnest50d",
+        encoder_weights="imagenet",
+        in_channels=3,
+        classes=1,
+        drop_path_rate=0.2
+    )
+    # # Gọi hàm ngay sau khi khởi tạo
+    ## force_drop_path_linear(model, 0.2) => Sai
     # 2. Kiểm tra
     # print("--- KIỂM TRA DROP PATH (ResNeSt) ---")
     # found_count = 0
@@ -158,14 +159,14 @@ def main(args):
     #     # nghĩa là rate=0 (nó tự disable layer đó luôn để tiết kiệm tính toán)
     #     print("=> Không tìm thấy lớp DropPath nào đang hoạt động (Rate = 0).")
 #     UNET++ (used)
-    model = smp.UnetPlusPlus(
-        encoder_name="tu-resnest50d", 
-        encoder_weights="imagenet",
-        in_channels=3,
-        classes=1,
-        # drop_path_rate=0.5
-)
-    force_drop_path_linear(model, 0.5)
+#     model = smp.UnetPlusPlus(
+#         encoder_name="tu-resnest50d", 
+#         encoder_weights="imagenet",
+#         in_channels=3,
+#         classes=1,
+#         drop_path_rate=0.5
+# )
+#     ## force_drop_path_linear(model, 0.5) => Sai
 #     SwinUnet => Size ảnh ko khớp => Bỏ
     
 #     model = smp.Unet(
