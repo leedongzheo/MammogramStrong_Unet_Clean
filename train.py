@@ -192,7 +192,7 @@ def main(args):
 #         decoder_attention_type="scse" 
 # )
     #  Thay thế SwinUnet bằng ConvNeXt
-# -------------BO DROP-----------------------
+
     model = smp.Unet(
         # ConvNeXt Tiny: Mạnh ~ ResNet50 / Swin-Tiny
         # ConvNeXt Base: Mạnh ~ ResNet101 / Swin-Base
@@ -210,17 +210,16 @@ def main(args):
 )
 # -------------BO DROP-----------------------
     #  Thay thế SwinUnet bằng ConvNeX
-#     model = smp.Unet(
-#         encoder_name="tu-convnext_tiny", 
-#         encoder_weights="imagenet",
-#         in_channels=3,
-#         classes=1,
-#         decoder_attention_type="scse"
-# )
-
-
-#     # # Gọi hàm để set rate là 0.2
-#     force_drop_path_linear(model, max_drop_rate=0.2)
+##     model = smp.Unet(
+##         encoder_name="tu-convnext_tiny", 
+##         encoder_weights="imagenet",
+##         in_channels=3,
+##         classes=1,
+##         decoder_attention_type="scse"
+## )
+##     # # Gọi hàm để set rate là 0.2
+##     force_drop_path_linear(model, max_drop_rate=0.2)
+# -------------BO DROP-----------------------
     # tranUnet (using)
     # Thay vì TransUNet (chưa có trong SMP), ta dùng Unet với Encoder là Transformer
 #     model = smp.Unet(
