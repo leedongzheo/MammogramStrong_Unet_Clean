@@ -160,16 +160,16 @@ def main(args):
     #     # nghĩa là rate=0 (nó tự disable layer đó luôn để tiết kiệm tính toán)
     #     print("=> Không tìm thấy lớp DropPath nào đang hoạt động (Rate = 0).")
 #     UNET++ (used)
-    model = smp.UnetPlusPlus(
-        encoder_name="tu-resnest50d", 
-        encoder_weights="imagenet",
-        in_channels=3,
-        classes=1,
-        drop_path_rate=0.5
-)
-    encoder_params = {
-    "drop_path_rate": 0.5
-}
+#     model = smp.UnetPlusPlus(
+#         encoder_name="tu-resnest50d", 
+#         encoder_weights="imagenet",
+#         in_channels=3,
+#         classes=1,
+#         drop_path_rate=0.5
+# )
+#     encoder_params = {
+#     "drop_path_rate": 0.5
+# }
 
     # Khởi tạo mô hình Dilated U-Net++
     model = DilatedUnetPlusPlus.DilatedUnetPlusPlus(
