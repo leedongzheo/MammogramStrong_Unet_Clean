@@ -177,7 +177,7 @@ def main(args):
         encoder_weights="imagenet",
         in_channels=3,
         classes=1,
-        drop_path_rate = 0.3,
+        drop_path_rate = 0.2,
         decoder_attention_type="scse"  # Giữ nguyên attention nếu bạn muốn
     )
 #     ## force_drop_path_linear(model, 0.5) => Sai
