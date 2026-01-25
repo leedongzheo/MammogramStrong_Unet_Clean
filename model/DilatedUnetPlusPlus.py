@@ -4,7 +4,7 @@ import torch.nn.functional as F
 import segmentation_models_pytorch as smp
 
 class ASPP(nn.Module):
-    def __init__(self, in_channels, out_channels, rates=[1, 6, 12, 18]):
+    def __init__(self, in_channels, out_channels, rates=[1, 2, 4, 8]):
         super(ASPP, self).__init__()
         self.conv1x1 = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, 1, bias=False),
