@@ -179,7 +179,7 @@ def main(args):
         classes=1,
         encoder_params = {
     "drop_path_rate": 0.5
-        }
+        },
         decoder_attention_type="scse"  # Giữ nguyên attention nếu bạn muốn
     )
 #     ## force_drop_path_linear(model, 0.5) => Sai
