@@ -100,7 +100,7 @@ def main(args):
     print("-" * 50)
     import numpy as np    
     from trainer import Trainer
-    from model import Unet, unet_pyramid_cbam_gate, Swin_unet
+    from model import Unet, unet_pyramid_cbam_gate, Swin_unet, DilatedUnetPlusPlus
     # from model import Swin_unet
     import optimizer as optimizer_module
     from dataset import get_dataloaders
@@ -111,6 +111,7 @@ def main(args):
     import shutil
     # from utils import loss_func
     from torch.optim.lr_scheduler import _LRScheduler
+    
     print("-" * 50)
     print(f"[INFO] Mode: {args.mode.upper()}")
     print("-" * 50)
@@ -166,6 +167,19 @@ def main(args):
         classes=1,
         drop_path_rate=0.5
 )
+    encoder_params = {
+    "drop_path_rate": 0.5
+}
+
+    # Khởi tạo mô hình Dilated U-Net++
+    model = DilatedUnetPlusPlus.DilatedUnetPlusPlus(
+        encoder_name="tu-resnest50d", 
+        encoder_weights="imagenet",
+        in_channels=3,
+        classes=1,
+        encoder_params=encoder_params, # Truyền drop_path_rate vào đây cho chuẩn
+        decoder_attention_type="scse"  # Giữ nguyên attention nếu bạn muốn
+    )
 #     ## force_drop_path_linear(model, 0.5) => Sai
 #     SwinUnet => Size ảnh ko khớp => Bỏ
     
