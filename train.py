@@ -172,14 +172,14 @@ def main(args):
 # }
 
     # Khởi tạo mô hình Dilated U-Net++
-    model = DilatedUnetPlusPlus.DilatedUnetPlusPlus(
-        encoder_name="tu-resnest50d", 
-        encoder_weights="imagenet",
-        in_channels=3,
-        classes=1,
-        drop_path_rate = 0.2,
-        decoder_attention_type="scse"  # Giữ nguyên attention nếu bạn muốn
-    )
+    # model = DilatedUnetPlusPlus.DilatedUnetPlusPlus(
+    #     encoder_name="tu-resnest50d", 
+    #     encoder_weights="imagenet",
+    #     in_channels=3,
+    #     classes=1,
+    #     drop_path_rate = 0.2,
+    #     decoder_attention_type="scse"  # Giữ nguyên attention nếu bạn muốn
+    # )
 #     ## force_drop_path_linear(model, 0.5) => Sai
 #     SwinUnet => Size ảnh ko khớp => Bỏ
     
@@ -248,20 +248,20 @@ def main(args):
 #         decoder_use_batchnorm=True,
 # )
     # UNET++ attention (Used)
-#     model = smp.UnetPlusPlus(
-#         encoder_name="tu-resnest50d", 
-#         encoder_weights="imagenet",
-#         in_channels=3,
-#         classes=1,
+    model = smp.UnetPlusPlus(
+        encoder_name="tu-resnest50d", 
+        encoder_weights="imagenet",
+        in_channels=3,
+        classes=1,
         
-#         # --- QUAN TRỌNG: THÊM DÒNG NÀY ĐỂ CÓ ATTENTION ---
-#         # scse giúp mô hình vừa lọc không gian (Spatial) vừa lọc kênh (Channel)
-#         decoder_attention_type="scse",
+        # --- QUAN TRỌNG: THÊM DÒNG NÀY ĐỂ CÓ ATTENTION ---
+        # scse giúp mô hình vừa lọc không gian (Spatial) vừa lọc kênh (Channel)
+        decoder_attention_type="scse",
         
-#         # --- SỬA LỖI DROP_PATH_RATE ---
-#         # Đưa vào encoder_params mới đúng cú pháp
-#         drop_path_rate=0.5
-# )
+        # --- SỬA LỖI DROP_PATH_RATE ---
+        # Đưa vào encoder_params mới đúng cú pháp
+        drop_path_rate=0.5
+)
     # UNet thường (Used)
 #     model = smp.Unet(
 #         encoder_name="tu-resnest50d", 
