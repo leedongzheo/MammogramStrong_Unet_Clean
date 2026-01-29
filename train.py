@@ -236,23 +236,23 @@ def main(args):
 # -------------BO DROP-----------------------
     # tranUnet (using)
     # Thay vì TransUNet (chưa có trong SMP), ta dùng Unet với Encoder là Transformer
-    model = smp.Unet(
-        # mit_b3 là backbone của SegFormer, mạnh tương đương ResNet50/101
-        # nhưng dùng cơ chế Self-Attention.
-        encoder_name="mit_b3",        
-        encoder_weights="imagenet",
-        in_channels=3,
-        classes=1,
-        # Các backbone Transformer trong SMP thường không nhận tham số drop_path_rate 
-        # trực tiếp ở đây, nên ta bỏ dòng đó đi để tránh lỗi.
-        decoder_use_batchnorm=True,
-)
-    # UNET++ attention (Used)
-#     model = smp.UnetPlusPlus(
-#         encoder_name="tu-resnest50d", 
+#     model = smp.Unet(
+#         # mit_b3 là backbone của SegFormer, mạnh tương đương ResNet50/101
+#         # nhưng dùng cơ chế Self-Attention.
+#         encoder_name="mit_b3",        
 #         encoder_weights="imagenet",
 #         in_channels=3,
 #         classes=1,
+#         # Các backbone Transformer trong SMP thường không nhận tham số drop_path_rate 
+#         # trực tiếp ở đây, nên ta bỏ dòng đó đi để tránh lỗi.
+#         decoder_use_batchnorm=True,
+# )
+    # UNET++ attention (Used)
+    # model = smp.UnetPlusPlus(
+    #     encoder_name="tu-resnest50d", 
+    #     encoder_weights="imagenet",
+    #     in_channels=3,
+    #     classes=1,
         
 #         # --- QUAN TRỌNG: THÊM DÒNG NÀY ĐỂ CÓ ATTENTION ---
 #         # scse giúp mô hình vừa lọc không gian (Spatial) vừa lọc kênh (Channel)
@@ -272,21 +272,21 @@ def main(args):
 #         drop_path_rate=0.5
 # )
     # attentionUnet (Using)
-#     model = smp.Unet(
-#         encoder_name="tu-resnest50d", 
-#         encoder_weights="imagenet",
-#         in_channels=3,
-#         classes=1,
+    model = smp.Unet(
+        encoder_name="tu-resnest50d", 
+        encoder_weights="imagenet",
+        in_channels=3,
+        classes=1,
         
-#         # --- THÊM DÒNG NÀY ĐỂ THÀNH ATTENTION UNET ---
-#         # scse: Spatial and Channel Squeeze & Excitation Attention
-#         # Nó sẽ chèn các block attention vào sau mỗi tầng Decoder
-#         decoder_attention_type="scse",
+        # --- THÊM DÒNG NÀY ĐỂ THÀNH ATTENTION UNET ---
+        # scse: Spatial and Channel Squeeze & Excitation Attention
+        # Nó sẽ chèn các block attention vào sau mỗi tầng Decoder
+        decoder_attention_type="scse",
         
-#         # --- SỬA LỖI DROP_PATH_RATE ---
-#         # Phải đưa vào encoder_params mới đúng, để ở ngoài sẽ không có tác dụng hoặc báo lỗi
-#         drop_path_rate=0.5
-# )
+        # --- SỬA LỖI DROP_PATH_RATE ---
+        # Phải đưa vào encoder_params mới đúng, để ở ngoài sẽ không có tác dụng hoặc báo lỗi
+        drop_path_rate=0.5
+)
     # Segformer (Using)
 #     model = smp.Segformer(
 #         # Encoder chuẩn của SegFormer là dòng MiT (Mix Transformer)
