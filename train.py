@@ -236,17 +236,17 @@ def main(args):
 # -------------BO DROP-----------------------
     # tranUnet (using)
     # Thay vì TransUNet (chưa có trong SMP), ta dùng Unet với Encoder là Transformer
-#     model = smp.Unet(
-#         # mit_b3 là backbone của SegFormer, mạnh tương đương ResNet50/101
-#         # nhưng dùng cơ chế Self-Attention.
-#         encoder_name="mit_b3",        
-#         encoder_weights="imagenet",
-#         in_channels=3,
-#         classes=1,
-#         # Các backbone Transformer trong SMP thường không nhận tham số drop_path_rate 
-#         # trực tiếp ở đây, nên ta bỏ dòng đó đi để tránh lỗi.
-#         decoder_use_batchnorm=True,
-# )
+    model = smp.Unet(
+        # mit_b3 là backbone của SegFormer, mạnh tương đương ResNet50/101
+        # nhưng dùng cơ chế Self-Attention.
+        encoder_name="mit_b3",        
+        encoder_weights="imagenet",
+        in_channels=3,
+        classes=1,
+        # Các backbone Transformer trong SMP thường không nhận tham số drop_path_rate 
+        # trực tiếp ở đây, nên ta bỏ dòng đó đi để tránh lỗi.
+        decoder_use_batchnorm=True,
+)
     # UNET++ attention (Used)
 #     model = smp.UnetPlusPlus(
 #         encoder_name="tu-resnest50d", 
@@ -288,20 +288,20 @@ def main(args):
 #         drop_path_rate=0.5
 # )
     # Segformer (Using)
-    model = smp.Segformer(
-        # Encoder chuẩn của SegFormer là dòng MiT (Mix Transformer)
-        # mit_b0 (nhẹ nhất) -> mit_b5 (nặng nhất)
-        # mit_b3 là lựa chọn cân bằng, mạnh tương đương ResNet50/ResNest50d
-        encoder_name="mit_b3",        
+#     model = smp.Segformer(
+#         # Encoder chuẩn của SegFormer là dòng MiT (Mix Transformer)
+#         # mit_b0 (nhẹ nhất) -> mit_b5 (nặng nhất)
+#         # mit_b3 là lựa chọn cân bằng, mạnh tương đương ResNet50/ResNest50d
+#         encoder_name="mit_b3",        
         
-        encoder_weights="imagenet",
-        in_channels=3,
-        classes=1,
+#         encoder_weights="imagenet",
+#         in_channels=3,
+#         classes=1,
         
-        # Encoder params vẫn dùng để truyền drop_path_rate
-        # Lưu ý: Với Transformer, drop_path_rate thường để thấp (0.1) thay vì 0.5
-        encoder_params={"drop_path_rate": 0.1} 
-)
+#         # Encoder params vẫn dùng để truyền drop_path_rate
+#         # Lưu ý: Với Transformer, drop_path_rate thường để thấp (0.1) thay vì 0.5
+#         encoder_params={"drop_path_rate": 0.1} 
+# )
     total_params = sum(p.numel() for p in model.parameters())
     trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     
