@@ -127,13 +127,13 @@ def main(args):
     #     dropout_prob=0.5)
     # DeepLabV3+
     # --- ÁP DỤNG ---
-    # model = smp.DeepLabV3Plus(
-    #     encoder_name="tu-resnest50d",
-    #     encoder_weights="imagenet",
-    #     in_channels=3,
-    #     classes=1,
-    #     drop_path_rate=0.2
-    # )
+    model = smp.DeepLabV3Plus(
+        encoder_name="tu-resnest50d",
+        encoder_weights="imagenet",
+        in_channels=3,
+        classes=1,
+        drop_path_rate=0.2
+    )
     # # Gọi hàm ngay sau khi khởi tạo
     ## force_drop_path_linear(model, 0.2) => Sai
     # 2. Kiểm tra
@@ -272,21 +272,21 @@ def main(args):
 #         drop_path_rate=0.5
 # )
     # attentionUnet (Using)
-    model = smp.Unet(
-        encoder_name="tu-resnest50d", 
-        encoder_weights="imagenet",
-        in_channels=3,
-        classes=1,
+#     model = smp.Unet(
+#         encoder_name="tu-resnest50d", 
+#         encoder_weights="imagenet",
+#         in_channels=3,
+#         classes=1,
         
-        # --- THÊM DÒNG NÀY ĐỂ THÀNH ATTENTION UNET ---
-        # scse: Spatial and Channel Squeeze & Excitation Attention
-        # Nó sẽ chèn các block attention vào sau mỗi tầng Decoder
-        decoder_attention_type="scse",
+#         # --- THÊM DÒNG NÀY ĐỂ THÀNH ATTENTION UNET ---
+#         # scse: Spatial and Channel Squeeze & Excitation Attention
+#         # Nó sẽ chèn các block attention vào sau mỗi tầng Decoder
+#         decoder_attention_type="scse",
         
-        # --- SỬA LỖI DROP_PATH_RATE ---
-        # Phải đưa vào encoder_params mới đúng, để ở ngoài sẽ không có tác dụng hoặc báo lỗi
-        drop_path_rate=0.5
-)
+#         # --- SỬA LỖI DROP_PATH_RATE ---
+#         # Phải đưa vào encoder_params mới đúng, để ở ngoài sẽ không có tác dụng hoặc báo lỗi
+#         drop_path_rate=0.5
+# )
     # Segformer (Using)
 #     model = smp.Segformer(
 #         # Encoder chuẩn của SegFormer là dòng MiT (Mix Transformer)
